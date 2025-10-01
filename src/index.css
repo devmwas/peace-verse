@@ -13,6 +13,7 @@ code {
 }
 
 
+/* TailwindCSS files */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
