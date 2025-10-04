@@ -87,6 +87,7 @@ const MobileNav = ({ onNavLinkClick, activePath }) => {
         bgcolor: "background.paper",
         height: "85vh",
         p: 2,
+        overflowY: "auto", // Ensure list is scrollable if needed
       }}
       role="presentation"
       onClick={() => setIsDrawerOpen(false)}
@@ -96,18 +97,17 @@ const MobileNav = ({ onNavLinkClick, activePath }) => {
       <Box
         sx={{
           display: "flex",
-          flexDirection: "column", // Stack items vertically in the header area
-          alignItems: "center", // Center items horizontally
+          flexDirection: "column",
+          alignItems: "center",
           mb: 3,
           pb: 1,
-          borderBottom: `1px solid rgba(255, 255, 255, 0.1)`,
         }}
       >
         {/* Logo */}
         <img
           src="/favicon.ico"
           alt="Amani360 Logo"
-          style={{ width: "40px", height: "40px", marginBottom: "8px" }} // Slightly larger logo
+          style={{ width: "40px", height: "40px", marginBottom: "8px" }}
         />
         <Typography
           variant="h6"
@@ -124,6 +124,8 @@ const MobileNav = ({ onNavLinkClick, activePath }) => {
           maxWidth: "300px",
           margin: "0 auto",
           width: "100%",
+          // *** FIX: Add padding-bottom to ensure the last link clears the BottomNavigation bar ***
+          paddingBottom: "60px",
         }}
       >
         {allNavItems.map((item) => (
@@ -183,7 +185,7 @@ const MobileNav = ({ onNavLinkClick, activePath }) => {
         sx={{
           width: "100%",
           bgcolor: "background.paper",
-          borderTop: `1px solid ${COLORS.ACCENT_YELLOW}20`,
+          borderTop: `1px solid ${COLORS.ACCENT_YELLOW}20`, // This is the faint divider for the bottom bar itself
         }}
       >
         {bottomBarItems.map((item) => (

@@ -7,7 +7,9 @@ import { Typography } from "@mui/material";
 // Import the Sidebar, Polling Component, and the NEW MobileNav
 import Sidebar from "./components/Sidebar";
 import BillPolling from "./components/BillPolling";
-import MobileNav from "./components/MobileNav"; // <-- NEW IMPORT
+import MobileNav from "./components/MobileNav";
+// --- NEW IMPORT FOR AUTH ---
+import { Auth } from "./components/Auth";
 
 // --- Custom Dark Theme Definition (Same as before) ---
 const darkTheme = createTheme({
@@ -55,29 +57,24 @@ const darkTheme = createTheme({
 // --- Main Application Component ---
 function App() {
   // State to track the active page, default to Polling as implemented
-  const [activePath, setActivePath] = useState("/polling");
+  const [activePath, setActivePath] = useState("/polling"); // Controls the sidebar's expanded state
 
-  // Controls the sidebar's expanded state
-  const [isSidebarExpanded, setIsSidebarExpanded] = useState(false);
+  const [isSidebarExpanded, setIsSidebarExpanded] = useState(false); // Sidebar width constants
 
-  // Sidebar width constants
   const sidebarExpandedWidth = "256px"; // Tailwind w-64
-  const sidebarCollapsedWidth = "80px"; // Tailwind w-20
+  const sidebarCollapsedWidth = "80px"; // Tailwind w-20 // Calculate dynamic margin for the main content area
 
-  // Calculate dynamic margin for the main content area
   const mainContentMargin = isSidebarExpanded
     ? sidebarExpandedWidth
-    : sidebarCollapsedWidth;
+    : sidebarCollapsedWidth; // Simple placeholder to render the current page content
 
-  // Simple placeholder to render the current page content
   const renderContent = () => {
     // Only Polling is implemented, so we render it regardless of state
     if (activePath === "/polling") {
       // NOTE: Using the component name BillPolling as referenced by the user
       return <BillPolling />;
-    }
+    } // Placeholder for other pages
 
-    // Placeholder for other pages
     return (
       <Box
         sx={{
@@ -89,43 +86,50 @@ function App() {
           justifyContent: "center",
         }}
       >
+               {" "}
         <Typography variant="h5" color="text.primary">
-          Content for {activePath.replace("/", "").toUpperCase()} Page
+                    Content for {activePath.replace("/", "").toUpperCase()} Page
+                 {" "}
         </Typography>
+             {" "}
       </Box>
     );
   };
 
   return (
     <ThemeProvider theme={darkTheme}>
-      <CssBaseline />
-      <Box sx={{ display: "flex", minHeight: "100vh" }}>
-        {/* 1. Desktop Sidebar Component (Fixed position) */}
-        <Sidebar
-          onNavLinkClick={setActivePath}
-          activePath={activePath}
-          isExpanded={isSidebarExpanded}
-          setIsExpanded={setIsSidebarExpanded}
-        />
+            <CssBaseline />
+      {/* --- Auth wraps the entire application logic --- */}
+      <Auth>
+        <Box sx={{ display: "flex", minHeight: "100vh" }}>
+          {/* 1. Desktop Sidebar Component (Fixed position) */}
+          <Sidebar
+            onNavLinkClick={setActivePath}
+            activePath={activePath}
+            isExpanded={isSidebarExpanded}
+            setIsExpanded={setIsSidebarExpanded}
+          />
 
-        {/* 2. Main Content Area (Pushed over by the sidebar's width) */}
-        <Box
-          component="main"
-          // Add pb-16 (Tailwind padding-bottom: 4rem) to account for the fixed MobileNav height
-          className="flex-grow p-0 pb-16"
-          sx={{
-            // DYNAMIC MARGIN (Desktop)
-            marginLeft: { md: mainContentMargin },
-            width: { md: `calc(100% - ${mainContentMargin})` },
-            transition: "margin-left 300ms ease-in-out",
-          }}
-        >
-          {renderContent()}
+          {/* 2. Main Content Area (Pushed over by the sidebar's width) */}
+          <Box
+            component="main"
+            // Add pb-16 (Tailwind padding-bottom: 4rem) to account for the fixed MobileNav height
+            className="flex-grow p-0 pb-16"
+            sx={{
+              // DYNAMIC MARGIN (Desktop)
+              marginLeft: { md: mainContentMargin },
+              width: { md: `calc(100% - ${mainContentMargin})` },
+              transition: "margin-left 300ms ease-in-out",
+            }}
+          >
+            {renderContent()}
+          </Box>
+
+          {/* 3. Mobile Navigation (Fixed bottom bar) */}
+          <MobileNav onNavLinkClick={setActivePath} activePath={activePath} />
         </Box>
-
-        {/* 3. Mobile Navigation (Fixed bottom bar) */}
-        <MobileNav onNavLinkClick={setActivePath} activePath={activePath} />
-      </Box>
+      </Auth>
+         {" "}
     </ThemeProvider>
   );
 }

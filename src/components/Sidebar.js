@@ -7,7 +7,11 @@ import {
   ListItemText,
   Typography,
   Button,
+  Menu,
+  MenuItem,
+  Divider,
 } from "@mui/material";
+import { AccountCircle } from "@mui/icons-material"; // icon for anonymous
 import {
   BsBullseye,
   BsTrophy,
@@ -23,6 +27,9 @@ import {
   MdOutlineRecordVoiceOver,
   MdSecurity,
 } from "react-icons/md";
+
+// For redirecting users to the auth component to sign in
+import { useAuth } from "./Auth";
 
 // Configuration Constants
 const COLORS = {
@@ -44,26 +51,28 @@ const primaryNavItems = [
   { name: "Blog", icon: <BsJournal />, path: "/blog" },
 ];
 
-const bottomNavItems = [
-  { name: "Settings", icon: <BsGear />, path: "/settings" },
-  { name: "Help & Support", icon: <BsQuestionCircle />, path: "/support" },
-  { name: "Language", icon: <BsTranslate />, path: "/language" },
-];
-
 const Sidebar = ({ onNavLinkClick, activePath }) => {
-  // State to manage the sidebar's expanded/collapsed status
-  const [isExpanded, setIsExpanded] = useState(false); // Start collapsed for the compact view
+  const { user, isAuthenticated, signOutUser } = useAuth(); // 🔑 get auth state
+  const [isExpanded, setIsExpanded] = useState(false);
+  const [anchorEl, setAnchorEl] = useState(null);
 
-  // Determine which item is currently selected
   const isNavLinkActive = (path) => activePath === path;
-
-  // Use Tailwind classes for dynamic width (w-64 = expanded, w-20 = collapsed)
   const sidebarWidthClass = isExpanded ? "w-64" : "w-20";
   const collapseDuration = "duration-300";
 
+  // Extract last name from displayName
+  const getLastName = (name) => {
+    if (!name) return "";
+    const parts = name.trim().split(" ");
+    return parts.length > 1 ? parts[parts.length - 1] : parts[0];
+  };
+
+  // Handle profile menu open/close
+  const handleMenuOpen = (event) => setAnchorEl(event.currentTarget);
+  const handleMenuClose = () => setAnchorEl(null);
+
   return (
     <Box
-      // Handlers to toggle the state based on hover
       onMouseEnter={() => setIsExpanded(true)}
       onMouseLeave={() => setIsExpanded(false)}
       component="nav"
@@ -77,20 +86,17 @@ const Sidebar = ({ onNavLinkClick, activePath }) => {
       <Box
         sx={{ p: 3, height: "100%", display: "flex", flexDirection: "column" }}
       >
-        {/* Logo/Title Section (Always shows logo, text only when expanded) */}
+        {/* Logo/Title */}
         <Box sx={{ pb: 3, borderBottom: "1px solid rgba(255, 255, 255, 0.1)" }}>
-          {/* --- Logo and Text Container --- */}
           <Box
             sx={{
               display: "flex",
               alignItems: "center",
               height: "40px",
               mb: 1,
-              // Center logo when collapsed, align left when expanded
               justifyContent: isExpanded ? "flex-start" : "center",
             }}
           >
-            {/* 1. Logo (Always displayed) */}
             <img
               src="/favicon.ico"
               alt="Amani360 Logo"
@@ -98,21 +104,15 @@ const Sidebar = ({ onNavLinkClick, activePath }) => {
                 width: "32px",
                 height: "32px",
                 borderRadius: "4px",
-                // Add margin when expanded to separate logo from text
                 marginRight: isExpanded ? "12px" : "0",
                 transition: "margin-right 0.3s",
               }}
             />
-
-            {/* 2. Title and Subtitle (Only displayed when expanded) */}
             {isExpanded && (
               <Box sx={{ whiteSpace: "nowrap", overflow: "hidden" }}>
                 <Typography
                   variant="h5"
-                  sx={{
-                    fontWeight: 700,
-                    color: COLORS.ACCENT_YELLOW,
-                  }}
+                  sx={{ fontWeight: 700, color: COLORS.ACCENT_YELLOW }}
                 >
                   Amani360
                 </Typography>
@@ -124,7 +124,7 @@ const Sidebar = ({ onNavLinkClick, activePath }) => {
           </Box>
         </Box>
 
-        {/* Propose a Bill Button (Primary CTA - Hidden when collapsed) */}
+        {/* Propose a Bill Button */}
         <Box sx={{ py: 3, flexShrink: 0 }}>
           {isExpanded && (
             <Button
@@ -149,7 +149,7 @@ const Sidebar = ({ onNavLinkClick, activePath }) => {
           )}
         </Box>
 
-        {/* Primary Navigation Links (Scrollable) */}
+        {/* Primary Navigation */}
         <Box sx={{ flexGrow: 1, overflowY: "auto" }}>
           <List disablePadding>
             {primaryNavItems.map((item) => (
@@ -160,23 +160,17 @@ const Sidebar = ({ onNavLinkClick, activePath }) => {
                 sx={{
                   borderRadius: "8px",
                   mb: 0.5,
-                  // Center icons when collapsed
                   justifyContent: isExpanded ? "initial" : "center",
-                  px: isExpanded ? 2 : 1.5, // Reduced padding when collapsed
+                  px: isExpanded ? 2 : 1.5,
                   "&.Mui-selected": {
                     backgroundColor: `${COLORS.ACCENT_YELLOW}20`,
-                    "&:hover": {
-                      backgroundColor: `${COLORS.ACCENT_YELLOW}30`,
-                    },
+                    "&:hover": { backgroundColor: `${COLORS.ACCENT_YELLOW}30` },
                   },
-                  "&:hover": {
-                    backgroundColor: "rgba(255, 255, 255, 0.05)",
-                  },
+                  "&:hover": { backgroundColor: "rgba(255, 255, 255, 0.05)" },
                 }}
               >
                 <ListItemIcon
                   sx={{
-                    // Ensure min width is consistent for icons
                     minWidth: isExpanded ? 40 : 50,
                     justifyContent: "center",
                     color: isNavLinkActive(item.path)
@@ -186,7 +180,6 @@ const Sidebar = ({ onNavLinkClick, activePath }) => {
                 >
                   {item.icon}
                 </ListItemIcon>
-                {/* Conditionally render text */}
                 {isExpanded && (
                   <ListItemText
                     primary={item.name}
@@ -203,7 +196,7 @@ const Sidebar = ({ onNavLinkClick, activePath }) => {
           </List>
         </Box>
 
-        {/* Bottom Navigation Links (Fixed) */}
+        {/* Profile / Auth Section */}
         <Box
           sx={{
             borderTop: "1px solid rgba(255, 255, 255, 0.1)",
@@ -212,43 +205,129 @@ const Sidebar = ({ onNavLinkClick, activePath }) => {
           }}
         >
           <List disablePadding>
-            {bottomNavItems.map((item) => (
-              <ListItemButton
-                key={item.name}
-                selected={isNavLinkActive(item.path)}
-                onClick={() => onNavLinkClick(item.path)}
+            <ListItemButton
+              onClick={handleMenuOpen}
+              sx={{
+                borderRadius: "8px",
+                mb: 0.5,
+                justifyContent: isExpanded ? "initial" : "center",
+                px: isExpanded ? 2 : 1.5,
+                "&:hover": { backgroundColor: "rgba(255, 255, 255, 0.05)" },
+              }}
+            >
+              <ListItemIcon
                 sx={{
-                  borderRadius: "8px",
-                  mb: 0.5,
-                  // Center icons when collapsed
-                  justifyContent: isExpanded ? "initial" : "center",
-                  px: isExpanded ? 2 : 1.5, // Reduced padding when collapsed
-                  "&.Mui-selected": {
-                    backgroundColor: `${COLORS.ACCENT_YELLOW}20`,
-                  },
+                  minWidth: isExpanded ? 40 : 50,
+                  justifyContent: "center",
                 }}
               >
-                <ListItemIcon
-                  sx={{
-                    minWidth: isExpanded ? 40 : 50,
-                    justifyContent: "center",
-                    color: isNavLinkActive(item.path)
-                      ? COLORS.ACCENT_YELLOW
-                      : "text.secondary",
-                  }}
-                >
-                  {item.icon}
-                </ListItemIcon>
-                {/* Conditionally render text */}
-                {isExpanded && (
-                  <ListItemText
-                    primary={item.name}
-                    primaryTypographyProps={{ fontWeight: 500 }}
+                {isAuthenticated && user?.photoURL ? (
+                  <img
+                    src={user.photoURL}
+                    alt="Profile"
+                    style={{
+                      width: "28px",
+                      height: "28px",
+                      borderRadius: "50%",
+                      objectFit: "cover",
+                    }}
+                  />
+                ) : (
+                  <AccountCircle
+                    sx={{ fontSize: 30, color: "text.secondary" }}
                   />
                 )}
-              </ListItemButton>
-            ))}
+              </ListItemIcon>
+              {isExpanded && (
+                <ListItemText
+                  primary={
+                    isAuthenticated
+                      ? getLastName(user.displayName)
+                      : "Anonymous"
+                  }
+                  primaryTypographyProps={{
+                    fontWeight: 500,
+                    color: "text.primary",
+                  }}
+                />
+              )}
+            </ListItemButton>
           </List>
+
+          {/* Dropdown Menu */}
+          <Menu
+            anchorEl={anchorEl}
+            open={Boolean(anchorEl)}
+            onClose={handleMenuClose}
+            anchorOrigin={{ vertical: "top", horizontal: "right" }}
+            transformOrigin={{ vertical: "bottom", horizontal: "right" }}
+          >
+            {/* Header */}
+            <Box sx={{ px: 2, py: 1 }}>
+              <Typography variant="caption" color="text.secondary">
+                Signed in as
+              </Typography>
+              <Typography variant="body2" fontWeight={600}>
+                {isAuthenticated ? getLastName(user.displayName) : "Anonymous"}
+              </Typography>
+            </Box>
+            <Divider />
+
+            {isAuthenticated ? (
+              <>
+                <MenuItem
+                  onClick={() => {
+                    handleMenuClose();
+                    onNavLinkClick("/profile");
+                  }}
+                >
+                  <AccountCircle style={{ marginRight: 8 }} /> Profile
+                </MenuItem>
+                <MenuItem
+                  onClick={() => {
+                    handleMenuClose();
+                    signOutUser(); // 🔑 use Auth provider logout
+                  }}
+                >
+                  Sign Out
+                </MenuItem>
+              </>
+            ) : (
+              <MenuItem
+                onClick={() => {
+                  handleMenuClose();
+                  onNavLinkClick("/auth"); // 🔑 take to Auth component
+                }}
+              >
+                <AccountCircle style={{ marginRight: 8 }} /> Login
+              </MenuItem>
+            )}
+
+            <MenuItem
+              onClick={() => {
+                handleMenuClose();
+                onNavLinkClick("/settings");
+              }}
+            >
+              <BsGear style={{ marginRight: 8 }} /> Settings
+            </MenuItem>
+            <MenuItem
+              onClick={() => {
+                handleMenuClose();
+                onNavLinkClick("/support");
+              }}
+            >
+              <BsQuestionCircle style={{ marginRight: 8 }} /> Help & Support
+            </MenuItem>
+            <MenuItem
+              onClick={() => {
+                handleMenuClose();
+                onNavLinkClick("/language");
+              }}
+            >
+              <BsTranslate style={{ marginRight: 8 }} /> Language
+            </MenuItem>
+          </Menu>
         </Box>
       </Box>
     </Box>
