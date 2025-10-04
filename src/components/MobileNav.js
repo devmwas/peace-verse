@@ -9,12 +9,13 @@ import {
   ListItemIcon,
   ListItemText,
   Typography,
+  Menu,
+  MenuItem,
+  Divider,
 } from "@mui/material";
-// --- CORRECTED REACT ICON IMPORTS ---
-// Using BsTrophyFill for a more impactful visual
+import { AccountCircle } from "@mui/icons-material";
 import {
   BsBullseye,
-  BsTrophy,
   BsMic,
   BsList,
   BsShieldLock,
@@ -30,7 +31,8 @@ import {
   MdSecurity,
 } from "react-icons/md";
 
-// Configuration Constants
+import { useAuth } from "./Auth"; // 🔑 use the auth provider
+
 const COLORS = {
   ACCENT_YELLOW: "#FBC02D",
 };
@@ -38,7 +40,6 @@ const COLORS = {
 // All navigation items (mirrors Sidebar structure)
 const allNavItems = [
   { name: "Polling", icon: <BsBullseye />, path: "/polling" },
-  // Use the full name in the detailed menu
   { name: "Hall of Fame", icon: <BsTrophyFill />, path: "/hall-of-fame" },
   { name: "Moderation", icon: <MdSecurity />, path: "/moderation" },
   { name: "Safe Spaces", icon: <BsShieldLock />, path: "/safe-spaces" },
@@ -55,45 +56,67 @@ const allNavItems = [
 ];
 
 const MobileNav = ({ onNavLinkClick, activePath }) => {
+  const { user, isAuthenticated, signOutUser } = useAuth();
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const [anchorEl, setAnchorEl] = useState(null);
 
-  // Items visible on the fixed bottom bar (Max 5 for usability)
+  const handleMenuOpen = (event) => setAnchorEl(event.currentTarget);
+  const handleMenuClose = () => setAnchorEl(null);
+
+  const getLastName = (name) => {
+    if (!name) return "";
+    const parts = name.trim().split(" ");
+    return parts.length > 1 ? parts[parts.length - 1] : parts[0];
+  };
+
+  // Items visible on the fixed bottom bar (Profile is now first)
   const bottomBarItems = [
+    {
+      name: "Profile",
+      icon:
+        isAuthenticated && user?.photoURL ? (
+          <img
+            src={user.photoURL}
+            alt="Profile"
+            style={{ width: 24, height: 24, borderRadius: "50%" }}
+          />
+        ) : (
+          <AccountCircle />
+        ),
+      path: "/profile",
+      isProfile: true,
+    },
     { name: "Polling", icon: <BsBullseye />, path: "/polling" },
-    // Shortened label to 'Winners' for mobile balance
-    { name: "Winners", icon: <BsTrophyFill />, path: "/hall-of-fame" },
     { name: "Propose", icon: <MdAddCircle />, path: "/propose", isCta: true },
     { name: "Radio", icon: <BsMic />, path: "/radio" },
     { name: "More", icon: <BsList />, path: "/more", isMenu: true },
   ];
 
-  const handleItemClick = (path, isMenu) => {
+  const handleItemClick = (path, isMenu, isProfile) => {
     if (isMenu) {
       setIsDrawerOpen(true);
+    } else if (isProfile) {
+      handleMenuOpen({ currentTarget: document.body }); // open profile menu
     } else if (path === "/propose") {
       console.log("Propose Bill Clicked from Mobile Nav");
-      // In a real app, this would open a modal or navigate to a submission form
     } else {
       onNavLinkClick(path);
-      setIsDrawerOpen(false);
+      setIsDrawerOpen(false); // auto-close drawer
     }
   };
 
   const drawerList = () => (
     <Box
-      // Full width and dynamic height (85vh)
       sx={{
         width: "100vw",
         bgcolor: "background.paper",
         height: "85vh",
         p: 2,
-        overflowY: "auto", // Ensure list is scrollable if needed
+        overflowY: "auto",
       }}
       role="presentation"
-      onClick={() => setIsDrawerOpen(false)}
-      onKeyDown={() => setIsDrawerOpen(false)}
     >
-      {/* --- Logo and Title Header (Centered) --- */}
+      {/* Logo and Title */}
       <Box
         sx={{
           display: "flex",
@@ -103,11 +126,10 @@ const MobileNav = ({ onNavLinkClick, activePath }) => {
           pb: 1,
         }}
       >
-        {/* Logo */}
         <img
           src="/favicon.ico"
           alt="Amani360 Logo"
-          style={{ width: "40px", height: "40px", marginBottom: "8px" }}
+          style={{ width: 40, height: 40, marginBottom: 8 }}
         />
         <Typography
           variant="h6"
@@ -117,14 +139,41 @@ const MobileNav = ({ onNavLinkClick, activePath }) => {
         </Typography>
       </Box>
 
-      {/* --- Navigation List --- */}
+      {/* Profile avatar + name (stacked vertically, centered) */}
+      <Box
+        sx={{
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          mb: 3,
+        }}
+      >
+        {isAuthenticated && user?.photoURL ? (
+          <img
+            src={user.photoURL}
+            alt="Profile"
+            style={{
+              width: 50,
+              height: 50,
+              borderRadius: "50%",
+              marginBottom: 8,
+            }}
+          />
+        ) : (
+          <AccountCircle sx={{ fontSize: 50, mb: 1 }} />
+        )}
+        <Typography variant="body1" fontWeight={600}>
+          {isAuthenticated ? getLastName(user.displayName) : "Anonymous"}
+        </Typography>
+      </Box>
+      <Divider sx={{ mb: 2 }} />
+
+      {/* Full list of nav items */}
       <List
         sx={{
-          // Center the list content horizontally
-          maxWidth: "300px",
+          maxWidth: 300,
           margin: "0 auto",
           width: "100%",
-          // *** FIX: Add padding-bottom to ensure the last link clears the BottomNavigation bar ***
           paddingBottom: "60px",
         }}
       >
@@ -132,7 +181,10 @@ const MobileNav = ({ onNavLinkClick, activePath }) => {
           <ListItemButton
             key={item.name}
             selected={activePath === item.path}
-            onClick={() => onNavLinkClick(item.path)}
+            onClick={() => {
+              onNavLinkClick(item.path);
+              setIsDrawerOpen(false); // auto-close drawer
+            }}
             sx={{
               borderRadius: "8px",
               "&.Mui-selected": {
@@ -168,9 +220,8 @@ const MobileNav = ({ onNavLinkClick, activePath }) => {
   );
 
   return (
-    // Hides the component on medium screens and up (md:hidden) and fixes it to the bottom.
     <Box className="fixed bottom-0 left-0 right-0 z-[1000] md:hidden">
-      {/* --- Fixed Bottom Navigation Bar --- */}
+      {/* Bottom bar */}
       <BottomNavigation
         value={activePath}
         onChange={(event, newValue) => {
@@ -178,14 +229,18 @@ const MobileNav = ({ onNavLinkClick, activePath }) => {
             (item) => item.path === newValue
           );
           if (selectedItem) {
-            handleItemClick(selectedItem.path, selectedItem.isMenu);
+            handleItemClick(
+              selectedItem.path,
+              selectedItem.isMenu,
+              selectedItem.isProfile
+            );
           }
         }}
         showLabels
         sx={{
           width: "100%",
           bgcolor: "background.paper",
-          borderTop: `1px solid ${COLORS.ACCENT_YELLOW}20`, // This is the faint divider for the bottom bar itself
+          borderTop: `1px solid ${COLORS.ACCENT_YELLOW}20`,
         }}
       >
         {bottomBarItems.map((item) => (
@@ -195,7 +250,7 @@ const MobileNav = ({ onNavLinkClick, activePath }) => {
             value={item.path}
             icon={item.icon}
             sx={{
-              pt: 1, // Add vertical spacing
+              pt: 1,
               color:
                 item.path === activePath
                   ? COLORS.ACCENT_YELLOW
@@ -204,15 +259,12 @@ const MobileNav = ({ onNavLinkClick, activePath }) => {
                 color:
                   item.path === activePath ? COLORS.ACCENT_YELLOW : undefined,
               },
-              // Overriding MUI's default styling for better icon-text spacing
-              "& .MuiBottomNavigationAction-label": {
-                marginTop: "4px", // Control space below the icon
-              },
+              "& .MuiBottomNavigationAction-label": { marginTop: "4px" },
             }}
             onClick={(e) => {
-              if (item.isMenu || item.isCta) {
+              if (item.isMenu || item.isCta || item.isProfile) {
                 e.preventDefault();
-                handleItemClick(item.path, item.isMenu);
+                handleItemClick(item.path, item.isMenu, item.isProfile);
               } else {
                 onNavLinkClick(item.path);
               }
@@ -221,7 +273,7 @@ const MobileNav = ({ onNavLinkClick, activePath }) => {
         ))}
       </BottomNavigation>
 
-      {/* --- Mobile Drawer (Slide-up menu) --- */}
+      {/* Drawer */}
       <SwipeableDrawer
         anchor="bottom"
         open={isDrawerOpen}
@@ -238,6 +290,79 @@ const MobileNav = ({ onNavLinkClick, activePath }) => {
       >
         {drawerList()}
       </SwipeableDrawer>
+
+      {/* Profile Dropdown Menu (same as Sidebar) */}
+      <Menu
+        anchorEl={anchorEl}
+        open={Boolean(anchorEl)}
+        onClose={handleMenuClose}
+        anchorOrigin={{ vertical: "top", horizontal: "center" }}
+        transformOrigin={{ vertical: "bottom", horizontal: "center" }}
+      >
+        <Box sx={{ px: 2, py: 1 }}>
+          <Typography variant="caption" color="text.secondary">
+            Signed in as
+          </Typography>
+          <Typography variant="body2" fontWeight={600}>
+            {isAuthenticated ? getLastName(user.displayName) : "Anonymous"}
+          </Typography>
+        </Box>
+        <Divider />
+
+        {isAuthenticated ? (
+          <>
+            <MenuItem
+              onClick={() => {
+                handleMenuClose();
+                onNavLinkClick("/profile");
+              }}
+            >
+              <AccountCircle style={{ marginRight: 8 }} /> Profile
+            </MenuItem>
+            <MenuItem
+              onClick={() => {
+                handleMenuClose();
+                signOutUser();
+              }}
+            >
+              Sign Out
+            </MenuItem>
+          </>
+        ) : (
+          <MenuItem
+            onClick={() => {
+              handleMenuClose();
+              onNavLinkClick("/auth");
+            }}
+          >
+            <AccountCircle style={{ marginRight: 8 }} /> Login
+          </MenuItem>
+        )}
+        <MenuItem
+          onClick={() => {
+            handleMenuClose();
+            onNavLinkClick("/settings");
+          }}
+        >
+          <BsGear style={{ marginRight: 8 }} /> Settings
+        </MenuItem>
+        <MenuItem
+          onClick={() => {
+            handleMenuClose();
+            onNavLinkClick("/support");
+          }}
+        >
+          <BsQuestionCircle style={{ marginRight: 8 }} /> Help & Support
+        </MenuItem>
+        <MenuItem
+          onClick={() => {
+            handleMenuClose();
+            onNavLinkClick("/language");
+          }}
+        >
+          <BsTranslate style={{ marginRight: 8 }} /> Language
+        </MenuItem>
+      </Menu>
     </Box>
   );
 };
