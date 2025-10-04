@@ -1,0 +1,7 @@
+Type	Title	Status	Source	Summary	Votes_For	Votes_Against
+B	The Finance Bill 2024	Active	Parliament	Proposed new taxes and amendments to existing fiscal laws. A key focus is on digital and environmental levies.	15000	85000
+B	The Affordable Housing Levy Bill, 2023	Past	Parliament	Legislation that established the framework and collection mechanism for the Housing Levy.	30000	10000
+B	New University Funding Model Bill	Active	Parliament	Legislation to formalize the student-centric funding framework for universities and TVETs, replacing the previous system.	5000	2500
+P	Citizen Proposal for Public Service Asset Disclosure	Proposed	Public (Amani360 User)	A proposal to lower the threshold and increase the frequency of public disclosure for assets held by high-ranking civil servants.	500	50
+P	Local Food Security and Subsidy Initiative Bill	Active	Public (Agri-Community Group)	A proposal to mandate county governments allocate a minimum of 10% of their annual development budget to local, small-scale farming subsidies.	800	120
+P	Past Bill Review Mechanism Proposal	Past	Public (Governance Watchdog)	A system allowing citizens to trigger a formal legislative review of past laws after a 5-year period.	1200	300
