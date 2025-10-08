@@ -11,7 +11,8 @@ import {
   MenuItem,
   Divider,
 } from "@mui/material";
-import { AccountCircle } from "@mui/icons-material"; // icon for anonymous
+// icon for anonymous
+import { User } from "lucide-react";
 import {
   BsBullseye,
   BsTrophy,
@@ -233,9 +234,7 @@ const Sidebar = ({ onNavLinkClick, activePath }) => {
                     }}
                   />
                 ) : (
-                  <AccountCircle
-                    sx={{ fontSize: 30, color: "text.secondary" }}
-                  />
+                  <User size={18} style={{ marginRight: 8 }} />
                 )}
               </ListItemIcon>
               {isExpanded && (
@@ -281,7 +280,7 @@ const Sidebar = ({ onNavLinkClick, activePath }) => {
                     onNavLinkClick("/profile");
                   }}
                 >
-                  <AccountCircle style={{ marginRight: 8 }} /> Profile
+                  <User size={18} style={{ marginRight: 8 }} />{" "}
                 </MenuItem>
                 <MenuItem
                   onClick={() => {
@@ -299,7 +298,7 @@ const Sidebar = ({ onNavLinkClick, activePath }) => {
                   onNavLinkClick("/auth"); // 🔑 take to Auth component
                 }}
               >
-                <AccountCircle style={{ marginRight: 8 }} /> Login
+                <User size={18} style={{ marginRight: 8 }} />
               </MenuItem>
             )}
 

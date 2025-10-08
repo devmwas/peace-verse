@@ -13,7 +13,7 @@ import {
   MenuItem,
   Divider,
 } from "@mui/material";
-import { AccountCircle } from "@mui/icons-material";
+import { User, LogOut } from "lucide-react";
 import {
   BsBullseye,
   BsMic,
@@ -81,7 +81,7 @@ const MobileNav = ({ onNavLinkClick, activePath }) => {
             style={{ width: 24, height: 24, borderRadius: "50%" }}
           />
         ) : (
-          <AccountCircle />
+          <User size={18} style={{ marginRight: 8 }} />
         ),
       path: "/profile",
       isProfile: true,
@@ -160,7 +160,7 @@ const MobileNav = ({ onNavLinkClick, activePath }) => {
             }}
           />
         ) : (
-          <AccountCircle sx={{ fontSize: 50, mb: 1 }} />
+          <User size={18} style={{ marginRight: 8 }} />
         )}
         <Typography variant="body1" fontWeight={600}>
           {isAuthenticated ? getLastName(user.displayName) : "Anonymous"}
@@ -317,7 +317,7 @@ const MobileNav = ({ onNavLinkClick, activePath }) => {
                 onNavLinkClick("/profile");
               }}
             >
-              <AccountCircle style={{ marginRight: 8 }} /> Profile
+              <User size={18} style={{ marginRight: 8 }} /> Profile
             </MenuItem>
             <MenuItem
               onClick={() => {
@@ -325,7 +325,7 @@ const MobileNav = ({ onNavLinkClick, activePath }) => {
                 signOutUser();
               }}
             >
-              Sign Out
+              <LogOut size={18} style={{ marginRight: 8 }} /> Sign Out
             </MenuItem>
           </>
         ) : (
@@ -335,7 +335,7 @@ const MobileNav = ({ onNavLinkClick, activePath }) => {
               onNavLinkClick("/auth");
             }}
           >
-            <AccountCircle style={{ marginRight: 8 }} /> Login
+            <User size={18} style={{ marginRight: 8 }} /> Login
           </MenuItem>
         )}
         <MenuItem
@@ -349,7 +349,7 @@ const MobileNav = ({ onNavLinkClick, activePath }) => {
         <MenuItem
           onClick={() => {
             handleMenuClose();
-            onNavLinkClick("/support");
+            onNavLinkClick("/help");
           }}
         >
           <BsQuestionCircle style={{ marginRight: 8 }} /> Help & Support

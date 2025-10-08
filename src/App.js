@@ -2,14 +2,21 @@ import React, { useState } from "react";
 import { ThemeProvider, createTheme } from "@mui/material/styles";
 import CssBaseline from "@mui/material/CssBaseline";
 import Box from "@mui/material/Box";
-import { Typography } from "@mui/material";
+import { Radio, Typography } from "@mui/material";
 
+// --- NEW IMPORT FOR AUTH ---
+import { Auth } from "./components/Auth";
 // Import the Sidebar, Polling Component, and the NEW MobileNav
 import Sidebar from "./components/Sidebar";
 import BillPolling from "./components/BillPolling";
 import MobileNav from "./components/MobileNav";
-// --- NEW IMPORT FOR AUTH ---
-import { Auth } from "./components/Auth";
+import HallOfFame from "./components/HallOfFame";
+import Moderation from "./components/Moderation";
+import SafeSpaces from "./components/SafeSpaces";
+import Blog from "./components/Blog";
+import Settings from "./components/Settings";
+import GenzRadio from "./components/GenzRadio";
+import Help from "./components/Help";
 
 // --- Custom Dark Theme Definition (Same as before) ---
 const darkTheme = createTheme({
@@ -71,9 +78,29 @@ function App() {
   const renderContent = () => {
     // Only Polling is implemented, so we render it regardless of state
     if (activePath === "/polling") {
-      // NOTE: Using the component name BillPolling as referenced by the user
       return <BillPolling />;
-    } // Placeholder for other pages
+    }
+    if (activePath === "/hall-of-fame") {
+      return <HallOfFame />;
+    }
+    if (activePath === "/moderation") {
+      return <Moderation />;
+    }
+    if (activePath === "/safe-spaces") {
+      return <SafeSpaces />;
+    }
+    if (activePath === "/blog") {
+      return <Blog />;
+    }
+    if (activePath === "/radio") {
+      return <GenzRadio />;
+    }
+    if (activePath === "/help") {
+      return <Help />;
+    }
+    if (activePath === "/settings") {
+      return <Settings />;
+    }
 
     return (
       <Box
@@ -86,12 +113,9 @@ function App() {
           justifyContent: "center",
         }}
       >
-               {" "}
         <Typography variant="h5" color="text.primary">
-                    Content for {activePath.replace("/", "").toUpperCase()} Page
-                 {" "}
+          Sorry. We couldn't find the page you're looking for.
         </Typography>
-             {" "}
       </Box>
     );
   };

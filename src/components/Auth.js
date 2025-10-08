@@ -30,14 +30,14 @@ import {
 } from "@mui/material";
 // Icons for providers and actions
 import {
-  Google,
-  Email,
+  Chrome,
+  Mail,
   Lock,
-  PersonAdd,
-  Login,
-  PhoneAndroid,
-  ArrowBack,
-} from "@mui/icons-material";
+  UserPlus,
+  LogIn,
+  Smartphone,
+  ArrowLeft,
+} from "lucide-react";
 
 // --- Firebase Configuration ---
 import { FIREBASE_CONFIG } from "../firebaseConfig";
@@ -297,7 +297,7 @@ export const Auth = ({ children }) => {
             size="small"
             InputProps={{
               startAdornment: (
-                <PersonAdd sx={{ color: "text.secondary", mr: 1 }} />
+                <UserPlus size={28} strokeWidth={2} color="#43A047" />
               ),
             }}
             sx={{ input: { color: "text.primary" } }}
@@ -313,7 +313,7 @@ export const Auth = ({ children }) => {
           required
           size="small"
           InputProps={{
-            startAdornment: <Email sx={{ color: "text.secondary", mr: 1 }} />,
+            startAdornment: <Mail size={28} strokeWidth={2} color="#1976D2" />,
           }}
           sx={{ input: { color: "text.primary" } }}
         />
@@ -327,7 +327,7 @@ export const Auth = ({ children }) => {
           required
           size="small"
           InputProps={{
-            startAdornment: <Lock sx={{ color: "text.secondary", mr: 1 }} />,
+            startAdornment: <Lock size={28} strokeWidth={2} color="#E53935" />,
           }}
           sx={{ input: { color: "text.primary" } }}
         />
@@ -336,7 +336,13 @@ export const Auth = ({ children }) => {
           type="submit"
           variant="contained"
           color="primary"
-          startIcon={isSigningUp ? <PersonAdd /> : <Login />}
+          startIcon={
+            isSigningUp ? (
+              <UserPlus size={28} strokeWidth={2} color="#43A047" />
+            ) : (
+              <LogIn size={28} strokeWidth={2} color="#1976D2" />
+            )
+          }
           sx={{ py: 1, fontWeight: "bold", mt: 1 }}
         >
                     {isSigningUp ? "Sign Up" : "Sign In"}       {" "}
@@ -379,7 +385,7 @@ export const Auth = ({ children }) => {
           }}
           sx={{ color: "text.secondary", mb: 1 }}
         >
-                    <ArrowBack />         {" "}
+                    <ArrowLeft />         {" "}
           <Typography variant="body2" sx={{ ml: 1 }}>
                         Back to main options          {" "}
           </Typography>
@@ -412,7 +418,7 @@ export const Auth = ({ children }) => {
               size="small"
               InputProps={{
                 startAdornment: (
-                  <PhoneAndroid sx={{ color: "text.secondary", mr: 1 }} />
+                  <Smartphone size={28} strokeWidth={2} color="#6A1B9A" />
                 ),
               }}
               sx={{ input: { color: "text.primary" } }}
@@ -430,7 +436,9 @@ export const Auth = ({ children }) => {
               type="submit"
               variant="contained"
               color="primary"
-              startIcon={<PhoneAndroid />}
+              startIcon={
+                <Smartphone size={28} strokeWidth={2} color="#6A1B9A" />
+              }
               sx={{ py: 1, fontWeight: "bold" }}
             >
                             Send Verification Code            {" "}
@@ -459,7 +467,7 @@ export const Auth = ({ children }) => {
               size="small"
               InputProps={{
                 startAdornment: (
-                  <Lock sx={{ color: "text.secondary", mr: 1 }} />
+                  <Lock size={28} strokeWidth={2} color="#E53935" />
                 ),
               }}
               sx={{ input: { color: "text.primary" } }}
@@ -469,7 +477,7 @@ export const Auth = ({ children }) => {
               type="submit"
               variant="contained"
               color="primary"
-              startIcon={<Login />}
+              startIcon={<LogIn />}
               sx={{ py: 1, fontWeight: "bold" }}
             >
                             Confirm Code & Sign In            {" "}
@@ -512,7 +520,7 @@ export const Auth = ({ children }) => {
             onClick={() => setAuthMode("main")}
             sx={{ color: "text.secondary", alignSelf: "flex-start", mb: 1 }}
           >
-                        <ArrowBack />           {" "}
+                        <ArrowLeft />           {" "}
             <Typography variant="body2" sx={{ ml: 1 }}>
                             Back to main options            {" "}
             </Typography>
@@ -551,7 +559,7 @@ export const Auth = ({ children }) => {
                     {/* --- Google Sign In --- */}         {" "}
           <Button
             variant="outlined"
-            startIcon={<Google />}
+            startIcon={<Chrome />}
             onClick={signInWithGoogle}
             sx={{
               py: 1.5,
@@ -578,7 +586,7 @@ export const Auth = ({ children }) => {
                     {/* --- Other Sign In Options --- */}         {" "}
           <Button
             variant="outlined"
-            startIcon={<Email />}
+            startIcon={<Mail />}
             onClick={() => setAuthMode("email")}
             sx={{
               py: 1,
@@ -593,7 +601,7 @@ export const Auth = ({ children }) => {
                    {" "}
           <Button
             variant="outlined"
-            startIcon={<PhoneAndroid />}
+            startIcon={<Smartphone />}
             onClick={() => setAuthMode("phone")}
             sx={{
               py: 1,
