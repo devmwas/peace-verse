@@ -190,7 +190,7 @@ const GenzRadio = () => {
           {featuredShows.map((show) => (
             <Card
               key={show.id}
-              className="bg-[#111] border border-[#2c2c2c] hover:border-[#FFD600] transition rounded-xl"
+              className="bg-black border border-[#2c2c2c] hover:border-[#FFD600] transition rounded-xl"
             >
               <CardContent className="space-y-2">
                 <h3 className="font-semibold text-white">{show.title}</h3>
@@ -221,7 +221,7 @@ const GenzRadio = () => {
           {votes.map((presenter) => (
             <Card
               key={presenter.id}
-              className="bg-[#111] border border-[#2c2c2c] rounded-xl"
+              className="bg-gray-950 border border-[#2c2c2c] rounded-xl"
             >
               <CardContent className="flex flex-col items-center space-y-2">
                 <Avatar alt={presenter.name} src="/presenter.jpg" />
@@ -246,7 +246,7 @@ const GenzRadio = () => {
         <h2 className="text-xl font-bold mb-4 text-[#FFD600]">
           🎤 Live Chat & Song Requests
         </h2>
-        <Card className="bg-[#111] border border-[#2c2c2c] shadow-md rounded-xl">
+        <Card className="bg-black border border-[#2c2c2c] shadow-md rounded-xl">
           <CardContent className="space-y-4">
             <div className="h-64 overflow-y-auto space-y-2 border border-[#2c2c2c] p-2 rounded-md bg-[#1a1a1a]">
               <AnimatePresence>
