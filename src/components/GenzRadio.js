@@ -10,8 +10,8 @@ import {
   Heart,
   Send,
   Mic,
+  Radio,
 } from "lucide-react";
-import { Radio } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Avatar, TextField } from "@mui/material";
 
@@ -51,7 +51,6 @@ const GenzRadio = () => {
   const duration = 296;
   const [votes, setVotes] = useState(presenters);
 
-  // Chat state
   const [messages, setMessages] = useState([
     { id: 1, user: "Brian", text: "Shoutout to my friends in Kisumu! 🔥" },
     { id: 2, user: "Asha", text: "Loving today’s vibes 🙌" },
@@ -82,58 +81,88 @@ const GenzRadio = () => {
 
   const handleSendMessage = () => {
     if (newMessage.trim() !== "") {
-      const newEntry = {
-        id: Date.now(),
-        user: "You",
-        text: newMessage,
-      };
+      const newEntry = { id: Date.now(), user: "You", text: newMessage };
       setMessages((prev) => [...prev, newEntry]);
       setNewMessage("");
     }
   };
 
   return (
-    <div className="p-6 max-w-6xl mx-auto space-y-12">
+    <div className="p-6 max-w-6xl mx-auto space-y-12 text-white">
       {/* Header */}
       <div className="text-center space-y-2">
-        <Radio className="w-12 h-12 mx-auto text-blue-500" />
-        <h1 className="text-3xl font-bold">Gen Z Radio</h1>
-        <p className="text-gray-600">
+        <Radio className="w-12 h-12 mx-auto text-yellow-400" />
+        <h1 className="text-3xl font-extrabold bg-gradient-to-r from-yellow-400 via-pink-400 to-purple-500 text-transparent bg-clip-text">
+          Gen Z Radio
+        </h1>
+        <p className="text-gray-400">
           Tune in to shows by young presenters, for young audiences. Discussing
           peace, culture, and more.
         </p>
         <p className="font-semibold">
-          Listen online or on <span className="text-blue-600">98.4 FM</span>
+          Listen online or on{" "}
+          <span className="text-yellow-400 font-bold">98.4 FM</span>
         </p>
       </div>
 
       {/* Now Playing */}
-      <Card className="shadow-lg">
+      <Card className="bg-gradient-to-r from-gray-900 via-gray-800 to-black border border-gray-700 rounded-xl shadow-xl">
         <CardContent className="space-y-4">
-          <h2 className="text-lg font-bold flex items-center gap-2">
-            <Mic className="text-red-500 animate-pulse" /> NOW PLAYING
+          <h2 className="text-lg font-bold flex items-center gap-2 text-yellow-400">
+            <Mic className="animate-pulse" /> NOW PLAYING
           </h2>
+
           <div className="flex items-center space-x-4">
-            <Avatar
-              alt="DJ Peace"
-              src="/djpeace.jpg"
-              sx={{ width: 64, height: 64 }}
-            />
             <div className="flex-1">
-              <p className="font-semibold">Sauti ya Vijana</p>
-              <p className="text-sm text-gray-500">with DJ Peace</p>
-              <div className="flex items-center space-x-2 mt-2">
-                <span>{formatTime(progress)}</span>
-                <div className="relative w-full h-2 bg-gray-200 rounded">
+              <p className="font-semibold text-white text-xl">
+                Sauti ya Vijana
+              </p>
+              <p className="text-sm text-gray-400">with DJ Peace</p>
+
+              {/* Equalizer - smooth animation */}
+              <div className="flex items-end h-12 space-x-1 mt-3">
+                {[...Array(15)].map((_, i) => (
                   <motion.div
-                    className="absolute h-2 bg-blue-500 rounded"
+                    key={i}
+                    className="w-1 bg-yellow-400 rounded"
+                    animate={{
+                      height: [
+                        `${Math.random() * 20 + 10}px`,
+                        `${Math.random() * 40 + 20}px`,
+                        `${Math.random() * 20 + 10}px`,
+                      ],
+                    }}
+                    transition={{
+                      duration: 1.2,
+                      repeat: Infinity,
+                      repeatType: "mirror",
+                      ease: "easeInOut",
+                      delay: i * 0.08,
+                    }}
+                  />
+                ))}
+              </div>
+
+              {/* Progress Bar */}
+              <div className="flex items-center space-x-2 mt-2">
+                <span className="text-xs text-gray-400">
+                  {formatTime(progress)}
+                </span>
+                <div className="relative w-full h-2 bg-gray-700 rounded overflow-hidden">
+                  <motion.div
+                    className="absolute h-2 bg-yellow-400 rounded"
                     initial={{ width: "0%" }}
                     animate={{ width: `${(progress / duration) * 100}%` }}
+                    transition={{ ease: "linear", duration: 0.5 }}
                   />
                 </div>
-                <span>{formatTime(duration)}</span>
+                <span className="text-xs text-gray-400">
+                  {formatTime(duration)}
+                </span>
               </div>
             </div>
+
+            {/* Controls */}
             <div className="flex space-x-2">
               <Button variant="ghost" onClick={() => setIsPlaying(!isPlaying)}>
                 {isPlaying ? <Pause /> : <Play />}
@@ -154,18 +183,27 @@ const GenzRadio = () => {
 
       {/* Featured Shows */}
       <div>
-        <h2 className="text-xl font-bold mb-4">Featured Shows</h2>
+        <h2 className="text-xl font-bold mb-4 text-yellow-400">
+          Featured Shows
+        </h2>
         <div className="grid md:grid-cols-3 gap-4">
           {featuredShows.map((show) => (
-            <Card key={show.id} className="hover:shadow-xl transition">
+            <Card
+              key={show.id}
+              className="bg-gray-900 border border-gray-700 hover:border-yellow-400 transition rounded-xl"
+            >
               <CardContent className="space-y-2">
-                <h3 className="font-semibold">{show.title}</h3>
-                <p className="text-sm text-gray-600">By {show.presenter}</p>
-                <p className="text-sm">{show.desc}</p>
+                <h3 className="font-semibold text-white">{show.title}</h3>
+                <p className="text-sm text-gray-400">By {show.presenter}</p>
+                <p className="text-sm text-gray-300">{show.desc}</p>
                 <p className="text-xs text-gray-500">
                   {show.listeners} listeners
                 </p>
-                <Button size="sm" variant="outline">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="border-yellow-400 text-yellow-400 hover:bg-yellow-400 hover:text-black"
+                >
                   Listen
                 </Button>
               </CardContent>
@@ -176,20 +214,26 @@ const GenzRadio = () => {
 
       {/* Voting */}
       <div>
-        <h2 className="text-xl font-bold mb-4">
+        <h2 className="text-xl font-bold mb-4 text-yellow-400">
           Vote for Your Favorite Presenters
         </h2>
         <div className="grid md:grid-cols-3 gap-4">
           {votes.map((presenter) => (
-            <Card key={presenter.id}>
+            <Card
+              key={presenter.id}
+              className="bg-gray-900 border border-gray-700 rounded-xl"
+            >
               <CardContent className="flex flex-col items-center space-y-2">
                 <Avatar alt={presenter.name} src="/presenter.jpg" />
-                <p className="font-semibold">{presenter.name}</p>
-                <p className="text-sm text-gray-500">
+                <p className="font-semibold text-white">{presenter.name}</p>
+                <p className="text-sm text-gray-400">
                   {presenter.votes.toLocaleString()} votes
                 </p>
-                <Button onClick={() => handleVote(presenter.id)}>
-                  <Heart className="mr-2 h-4 w-4" /> Vote
+                <Button
+                  onClick={() => handleVote(presenter.id)}
+                  className="bg-yellow-400 text-black flex align-middle hover:bg-yellow-500"
+                >
+                  <Heart className="mr-2 h-4 w-4 my-auto" /> Vote
                 </Button>
               </CardContent>
             </Card>
@@ -197,13 +241,14 @@ const GenzRadio = () => {
         </div>
       </div>
 
-      {/* Live Chat & Requests */}
+      {/* Live Chat */}
       <div>
-        <h2 className="text-xl font-bold mb-4">🎤 Live Chat & Song Requests</h2>
-        <Card className="shadow-md">
+        <h2 className="text-xl font-bold mb-4 text-yellow-400">
+          🎤 Live Chat & Song Requests
+        </h2>
+        <Card className="bg-gray-900 border border-gray-700 shadow-md rounded-xl">
           <CardContent className="space-y-4">
-            {/* Chat Feed */}
-            <div className="h-64 overflow-y-auto space-y-2 border p-2 rounded-md bg-gray-50">
+            <div className="h-64 overflow-y-auto space-y-2 border border-gray-700 p-2 rounded-md bg-gray-800">
               <AnimatePresence>
                 {messages.map((msg) => (
                   <motion.div
@@ -211,16 +256,17 @@ const GenzRadio = () => {
                     initial={{ opacity: 0, x: -20 }}
                     animate={{ opacity: 1, x: 0 }}
                     exit={{ opacity: 0, x: 20 }}
-                    className="p-2 bg-white rounded shadow-sm"
+                    className="p-2 bg-gray-700 rounded shadow-sm"
                   >
-                    <span className="font-semibold">{msg.user}: </span>
+                    <span className="font-semibold text-yellow-400">
+                      {msg.user}:{" "}
+                    </span>
                     <span>{msg.text}</span>
                   </motion.div>
                 ))}
               </AnimatePresence>
             </div>
 
-            {/* Input */}
             <div className="flex items-center gap-2">
               <TextField
                 fullWidth
@@ -228,8 +274,15 @@ const GenzRadio = () => {
                 placeholder="Send a shoutout or request..."
                 value={newMessage}
                 onChange={(e) => setNewMessage(e.target.value)}
+                sx={{
+                  input: { color: "white" },
+                  "& .MuiOutlinedInput-root": {
+                    "& fieldset": { borderColor: "#FBC02D" },
+                    "&:hover fieldset": { borderColor: "#FBC02D" },
+                  },
+                }}
               />
-              <Button onClick={handleSendMessage}>
+              <Button className="bg-yellow-400 text-black hover:bg-yellow-500">
                 <Send className="w-4 h-4" />
               </Button>
             </div>

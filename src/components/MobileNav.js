@@ -303,7 +303,7 @@ const MobileNav = ({ onNavLinkClick, activePath }) => {
           <Typography variant="caption" color="text.secondary">
             Signed in as
           </Typography>
-          <Typography variant="body2" fontWeight={600}>
+          <Typography variant="body2" fontWeight={600} color="yellow">
             {isAuthenticated ? getLastName(user.displayName) : "Anonymous"}
           </Typography>
         </Box>
