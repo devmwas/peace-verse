@@ -383,7 +383,7 @@ const HallOfFamePage = () => {
         {/* Stats Grid */}
         <Grid container spacing={3} mb={5}>
           {STATS.map((stat) => (
-            <Grid item xs={6} md={4} lg={2.4} key={stat.id}>
+            <Grid item xs={12} sm={6} md={4} key={stat.id}>
               <StatCard
                 title={stat.title}
                 value={stat.value}
@@ -429,14 +429,14 @@ const HallOfFamePage = () => {
           {/* Ambassadors Grid */}
           <Grid container spacing={4}>
             {AMBASSADORS.map((ambassador) => (
-              <Grid item xs={12} sm={6} lg={4} xl={3} key={ambassador.id}>
+              <Grid item xs={12} sm={6} md={4} key={ambassador.id}>
                 <AmbassadorCard
                   name={ambassador.name}
                   handle={ambassador.handle}
                   score={ambassador.score}
                   platform={ambassador.platform}
                   PlatformIcon={ambassador.PlatformIcon}
-                  avatarUrl={ambassador.avatarUrl}
+                  avatarUrl={`https://source.unsplash.com/random/150x150?face&sig=${ambassador.id}`}
                 />
               </Grid>
             ))}

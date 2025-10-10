@@ -88,27 +88,27 @@ const GenzRadio = () => {
   };
 
   return (
-    <div className="p-6 max-w-6xl mx-auto space-y-12 text-white">
+    <div className="p-6 max-w-6xl mx-auto space-y-12 text-white bg-[#0a0a0a]">
       {/* Header */}
       <div className="text-center space-y-2">
-        <Radio className="w-12 h-12 mx-auto text-yellow-400" />
-        <h1 className="text-3xl font-extrabold bg-gradient-to-r from-yellow-400 via-pink-400 to-purple-500 text-transparent bg-clip-text">
+        <Radio className="w-12 h-12 mx-auto text-[#FFD600]" />
+        <h1 className="text-3xl font-extrabold bg-gradient-to-r from-[#FFD600] via-[#FF4081] to-[#7C4DFF] text-transparent bg-clip-text">
           Gen Z Radio
         </h1>
-        <p className="text-gray-400">
+        <p className="text-[#b0b0b0]">
           Tune in to shows by young presenters, for young audiences. Discussing
           peace, culture, and more.
         </p>
         <p className="font-semibold">
           Listen online or on{" "}
-          <span className="text-yellow-400 font-bold">98.X FM</span>
+          <span className="text-[#FFD600] font-bold">98.X FM</span>
         </p>
       </div>
 
       {/* Now Playing */}
-      <Card className="bg-gradient-to-r from-gray-900 via-gray-800 to-black border border-gray-700 rounded-xl shadow-xl">
+      <Card className="bg-gradient-to-r from-[#111111] via-[#1c1c1c] to-[#000000] border border-[#2c2c2c] rounded-xl shadow-xl">
         <CardContent className="space-y-4">
-          <h2 className="text-lg font-bold flex items-center gap-2 text-yellow-400">
+          <h2 className="text-lg font-bold flex items-center gap-2 text-[#FFD600]">
             <Mic className="animate-pulse" /> NOW PLAYING
           </h2>
 
@@ -117,14 +117,14 @@ const GenzRadio = () => {
               <p className="font-semibold text-white text-xl">
                 Sauti ya Vijana
               </p>
-              <p className="text-sm text-gray-400">with DJ Peace</p>
+              <p className="text-sm text-[#b0b0b0]">with DJ Peace</p>
 
-              {/* Equalizer - smooth animation */}
+              {/* Equalizer */}
               <div className="flex items-end h-12 space-x-1 mt-3">
                 {[...Array(15)].map((_, i) => (
                   <motion.div
                     key={i}
-                    className="w-1 bg-yellow-400 rounded"
+                    className="w-1 bg-[#FFD600] rounded"
                     animate={{
                       height: [
                         `${Math.random() * 20 + 10}px`,
@@ -133,11 +133,11 @@ const GenzRadio = () => {
                       ],
                     }}
                     transition={{
-                      duration: 1.2,
+                      duration: 1.5,
                       repeat: Infinity,
                       repeatType: "mirror",
                       ease: "easeInOut",
-                      delay: i * 0.08,
+                      delay: i * 0.1,
                     }}
                   />
                 ))}
@@ -145,18 +145,18 @@ const GenzRadio = () => {
 
               {/* Progress Bar */}
               <div className="flex items-center space-x-2 mt-2">
-                <span className="text-xs text-gray-400">
+                <span className="text-xs text-[#999]">
                   {formatTime(progress)}
                 </span>
-                <div className="relative w-full h-2 bg-gray-700 rounded overflow-hidden">
+                <div className="relative w-full h-2 bg-[#2c2c2c] rounded overflow-hidden">
                   <motion.div
-                    className="absolute h-2 bg-yellow-400 rounded"
+                    className="absolute h-2 bg-[#FFD600] rounded"
                     initial={{ width: "0%" }}
                     animate={{ width: `${(progress / duration) * 100}%` }}
                     transition={{ ease: "linear", duration: 0.5 }}
                   />
                 </div>
-                <span className="text-xs text-gray-400">
+                <span className="text-xs text-[#999]">
                   {formatTime(duration)}
                 </span>
               </div>
@@ -183,26 +183,26 @@ const GenzRadio = () => {
 
       {/* Featured Shows */}
       <div>
-        <h2 className="text-xl font-bold mb-4 text-yellow-400">
+        <h2 className="text-xl font-bold mb-4 text-[#FFD600]">
           Featured Shows
         </h2>
         <div className="grid md:grid-cols-3 gap-4">
           {featuredShows.map((show) => (
             <Card
               key={show.id}
-              className="bg-gray-900 border border-gray-700 hover:border-yellow-400 transition rounded-xl"
+              className="bg-[#111] border border-[#2c2c2c] hover:border-[#FFD600] transition rounded-xl"
             >
               <CardContent className="space-y-2">
                 <h3 className="font-semibold text-white">{show.title}</h3>
-                <p className="text-sm text-gray-400">By {show.presenter}</p>
-                <p className="text-sm text-gray-300">{show.desc}</p>
-                <p className="text-xs text-gray-500">
+                <p className="text-sm text-[#b0b0b0]">By {show.presenter}</p>
+                <p className="text-sm text-[#d1d1d1]">{show.desc}</p>
+                <p className="text-xs text-[#888]">
                   {show.listeners} listeners
                 </p>
                 <Button
                   size="sm"
                   variant="outline"
-                  className="border-yellow-400 text-yellow-400 hover:bg-yellow-400 hover:text-black"
+                  className="border-[#FFD600] text-[#FFD600] hover:bg-[#FFD600] hover:text-black"
                 >
                   Listen
                 </Button>
@@ -214,24 +214,24 @@ const GenzRadio = () => {
 
       {/* Voting */}
       <div>
-        <h2 className="text-xl font-bold mb-4 text-yellow-400">
+        <h2 className="text-xl font-bold mb-4 text-[#FFD600]">
           Vote for Your Favorite Presenters
         </h2>
         <div className="grid md:grid-cols-3 gap-4">
           {votes.map((presenter) => (
             <Card
               key={presenter.id}
-              className="bg-gray-900 border border-gray-700 rounded-xl"
+              className="bg-[#111] border border-[#2c2c2c] rounded-xl"
             >
               <CardContent className="flex flex-col items-center space-y-2">
                 <Avatar alt={presenter.name} src="/presenter.jpg" />
                 <p className="font-semibold text-white">{presenter.name}</p>
-                <p className="text-sm text-gray-400">
+                <p className="text-sm text-[#b0b0b0]">
                   {presenter.votes.toLocaleString()} votes
                 </p>
                 <Button
                   onClick={() => handleVote(presenter.id)}
-                  className="bg-yellow-400 text-black flex align-middle hover:bg-yellow-500"
+                  className="bg-[#FFD600] text-black flex align-middle hover:bg-[#FFEA00]"
                 >
                   <Heart className="mr-2 h-4 w-4 my-auto" /> Vote
                 </Button>
@@ -243,12 +243,12 @@ const GenzRadio = () => {
 
       {/* Live Chat */}
       <div>
-        <h2 className="text-xl font-bold mb-4 text-yellow-400">
+        <h2 className="text-xl font-bold mb-4 text-[#FFD600]">
           🎤 Live Chat & Song Requests
         </h2>
-        <Card className="bg-gray-900 border border-gray-700 shadow-md rounded-xl">
+        <Card className="bg-[#111] border border-[#2c2c2c] shadow-md rounded-xl">
           <CardContent className="space-y-4">
-            <div className="h-64 overflow-y-auto space-y-2 border border-gray-700 p-2 rounded-md bg-gray-800">
+            <div className="h-64 overflow-y-auto space-y-2 border border-[#2c2c2c] p-2 rounded-md bg-[#1a1a1a]">
               <AnimatePresence>
                 {messages.map((msg) => (
                   <motion.div
@@ -256,9 +256,9 @@ const GenzRadio = () => {
                     initial={{ opacity: 0, x: -20 }}
                     animate={{ opacity: 1, x: 0 }}
                     exit={{ opacity: 0, x: 20 }}
-                    className="p-2 bg-gray-700 rounded shadow-sm"
+                    className="p-2 bg-[#2c2c2c] rounded shadow-sm"
                   >
-                    <span className="font-semibold text-yellow-400">
+                    <span className="font-semibold text-[#FFD600]">
                       {msg.user}:{" "}
                     </span>
                     <span>{msg.text}</span>
@@ -277,12 +277,15 @@ const GenzRadio = () => {
                 sx={{
                   input: { color: "white" },
                   "& .MuiOutlinedInput-root": {
-                    "& fieldset": { borderColor: "#FBC02D" },
-                    "&:hover fieldset": { borderColor: "#FBC02D" },
+                    "& fieldset": { borderColor: "#FFD600" },
+                    "&:hover fieldset": { borderColor: "#FFD600" },
                   },
                 }}
               />
-              <Button className="bg-yellow-400 text-black hover:bg-yellow-500">
+              <Button
+                className="bg-[#FFD600] text-black hover:bg-[#FFEA00]"
+                onClick={handleSendMessage}
+              >
                 <Send className="w-4 h-4" />
               </Button>
             </div>
@@ -290,7 +293,7 @@ const GenzRadio = () => {
         </Card>
       </div>
 
-      <footer className="text-center text-sm text-gray-500 pt-8">
+      <footer className="text-center text-sm text-[#888] pt-8">
         Peace Verse © 2025. A youth-led peacebuilding platform for Kenya.
       </footer>
     </div>

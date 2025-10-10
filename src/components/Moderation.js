@@ -15,6 +15,9 @@ import {
   LinearProgress,
   Typography,
   Paper,
+  Button,
+  Card,
+  CardContent,
 } from "@mui/material";
 import { MoreVertical } from "lucide-react";
 
@@ -81,6 +84,9 @@ export default function Moderation() {
   const [anchorEl, setAnchorEl] = React.useState(null);
   const [selectedId, setSelectedId] = React.useState(null);
 
+  // 🔹 New filter state
+  const [filter, setFilter] = React.useState("All");
+
   const handleMenuOpen = (event, id) => {
     setAnchorEl(event.currentTarget);
     setSelectedId(id);
@@ -104,6 +110,10 @@ export default function Moderation() {
     }
   };
 
+  // 🔹 Filtered data
+  const filteredData =
+    filter === "All" ? data : data.filter((row) => row.status === filter);
+
   return (
     <Box className="p-6">
       <Typography variant="h4" gutterBottom>
@@ -114,8 +124,77 @@ export default function Moderation() {
         — tribalists, misogynists, hate speech promoters, and inciters.
       </Typography>
 
-      <TableContainer component={Paper} sx={{ mt: 3, background: "#1E1E1E" }}>
-        <Table>
+      {/* Stats Section */}
+      <Box
+        display="grid"
+        gridTemplateColumns="repeat(auto-fit, minmax(180px, 1fr))"
+        gap={2}
+        sx={{ my: 3 }}
+      >
+        <Card>
+          <CardContent>
+            <Typography variant="h6">Total Users</Typography>
+            <Typography variant="h4" fontWeight="bold">
+              {data.length}
+            </Typography>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent>
+            <Typography variant="h6">Flagged</Typography>
+            <Typography variant="h4" fontWeight="bold">
+              {data.filter((d) => d.status === "Flagged").length}
+            </Typography>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent>
+            <Typography variant="h6">Restricted</Typography>
+            <Typography variant="h4" fontWeight="bold">
+              {data.filter((d) => d.status === "Restricted").length}
+            </Typography>
+          </CardContent>
+        </Card>
+      </Box>
+
+      {/* Filters */}
+      <Box
+        display="flex"
+        gap={2}
+        overflow="auto"
+        sx={{
+          mb: 2,
+          maxWidth: "100vw", // ✅ don’t stretch past viewport
+          whiteSpace: "nowrap", // ✅ keeps buttons in one line
+        }}
+      >
+        {["All", "Flagged", "Monitored", "Restricted"].map((status) => (
+          <Button
+            key={status}
+            variant={filter === status ? "contained" : "outlined"}
+            color="primary"
+            onClick={() => setFilter(status)}
+          >
+            {status}
+          </Button>
+        ))}
+      </Box>
+
+      {/* Table */}
+      <TableContainer
+        component={Paper}
+        sx={{
+          mt: 3,
+          background: "#1E1E1E",
+          overflowX: "auto", // ✅ enable scroll
+          maxWidth: "90vw", // ✅ don't overflow page
+        }}
+      >
+        <Table sx={{ minWidth: "1200px" }}>
+          {" "}
+          {/* ✅ force wide table so scroll kicks in */}
           <TableHead>
             <TableRow>
               <TableCell>User</TableCell>
@@ -131,7 +210,7 @@ export default function Moderation() {
             </TableRow>
           </TableHead>
           <TableBody>
-            {data.map((row) => (
+            {filteredData.map((row) => (
               <TableRow key={row.id} hover>
                 <TableCell>
                   <Box display="flex" alignItems="center" gap={2}>
@@ -172,7 +251,7 @@ export default function Moderation() {
                 <TableCell>{row.incitement}</TableCell>
                 <TableCell align="center">
                   <IconButton onClick={(e) => handleMenuOpen(e, row.id)}>
-                    <MoreVertical className="w-5 h-5 text-gray-600" />
+                    <MoreVertical className="w-5 h-5 text-gray-400" />
                   </IconButton>
                 </TableCell>
               </TableRow>
