@@ -130,16 +130,16 @@ const Sidebar = ({ onNavLinkClick, activePath }) => {
           {isExpanded && (
             <Button
               startIcon={<MdAddCircle />}
-              variant="contained"
+              variant="text"
               fullWidth
               sx={{
                 py: 1.5,
                 fontWeight: "bold",
                 textTransform: "uppercase",
-                backgroundColor: COLORS.ACCENT_YELLOW,
-                color: "black",
+                // backgroundColor: COLORS.ACCENT_YELLOW,
+                // color: "black",
                 "&:hover": {
-                  backgroundColor: COLORS.ACCENT_YELLOW,
+                  // backgroundColor: COLORS.ACCENT_YELLOW,
                   opacity: 0.9,
                 },
               }}

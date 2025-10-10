@@ -375,7 +375,7 @@ const HallOfFamePage = () => {
               component="span"
               sx={{ color: "warning.main", fontWeight: "bold" }}
             >
-              our platform to advance peace.
+              digital platforms to advance peace.
             </Box>
           </Typography>
         </Box>

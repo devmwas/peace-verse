@@ -295,16 +295,16 @@ const BillPolling = () => {
         <Box className="md:w-64 w-full md:mt-0 mt-3 flex-shrink-0 order-last md:order-none">
           <Button
             startIcon={<MdAddCircle />}
-            variant="contained"
+            variant="outlined"
             // Ensure button uses the softer accent color
             sx={{
               py: 1.5,
               fontWeight: "bold",
               textTransform: "uppercase",
-              backgroundColor: COLORS.ACCENT_YELLOW,
-              color: "black", // Text must be black for contrast
+              // backgroundColor: COLORS.ACCENT_YELLOW,
+              // color: "black", // Text must be black for contrast
               "&:hover": {
-                backgroundColor: COLORS.ACCENT_YELLOW, // Keep hover same for consistency
+                // backgroundColor: COLORS.ACCENT_YELLOW, // Keep hover same for consistency
                 opacity: 0.9,
               },
             }}
@@ -319,7 +319,7 @@ const BillPolling = () => {
       {/* --- END NEW HEADER FLEX CONTAINER --- */}
 
       {/* --- OFFLINE ALERT CARD (Primary Banner Below Header) --- */}
-      <Card
+      {/* <Card
         elevation={2}
         sx={{
           mb: 4,
@@ -347,7 +347,7 @@ const BillPolling = () => {
             **"\*300\*1#"** to get started.
           </Typography>
         </Box>
-      </Card>
+      </Card> */}
       {/* --- END OFFLINE ALERT CARD --- */}
 
       {/* --- Tabs --- */}

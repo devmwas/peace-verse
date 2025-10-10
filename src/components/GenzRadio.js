@@ -101,7 +101,7 @@ const GenzRadio = () => {
         </p>
         <p className="font-semibold">
           Listen online or on{" "}
-          <span className="text-yellow-400 font-bold">98.4 FM</span>
+          <span className="text-yellow-400 font-bold">98.X FM</span>
         </p>
       </div>
 
