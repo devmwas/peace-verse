@@ -12,7 +12,7 @@ import {
   Divider,
 } from "@mui/material";
 // icon for anonymous
-import { User } from "lucide-react";
+import { LogOut, User } from "lucide-react";
 import {
   BsBullseye,
   BsTrophy,
@@ -266,7 +266,7 @@ const Sidebar = ({ onNavLinkClick, activePath }) => {
               <Typography variant="caption" color="text.secondary">
                 Signed in as
               </Typography>
-              <Typography variant="body2" fontWeight={600}>
+              <Typography variant="body2" fontWeight={600} color="yellow">
                 {isAuthenticated ? getLastName(user.displayName) : "Anonymous"}
               </Typography>
             </Box>
@@ -280,7 +280,8 @@ const Sidebar = ({ onNavLinkClick, activePath }) => {
                     onNavLinkClick("/profile");
                   }}
                 >
-                  <User size={18} style={{ marginRight: 8 }} />{" "}
+                  <User size={18} style={{ marginRight: 8 }} />
+                  Profile
                 </MenuItem>
                 <MenuItem
                   onClick={() => {
@@ -288,6 +289,7 @@ const Sidebar = ({ onNavLinkClick, activePath }) => {
                     signOutUser(); // 🔑 use Auth provider logout
                   }}
                 >
+                  <LogOut size={18} style={{ marginRight: 8 }} />
                   Sign Out
                 </MenuItem>
               </>
