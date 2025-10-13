@@ -188,68 +188,142 @@ export default function Moderation() {
         sx={{
           mt: 3,
           background: "#1E1E1E",
-          overflowX: "auto", // ✅ enable scroll
-          maxWidth: "90vw", // ✅ don't overflow page
+          overflowX: "auto", // horizontal scroll
+          maxWidth: "100vw", // limit width
+
+          /* 🔥 Dark Scrollbar Styling */
+          "&::-webkit-scrollbar": {
+            height: 10,
+          },
+          "&::-webkit-scrollbar-track": {
+            backgroundColor: "#111", // dark track
+            borderRadius: 10,
+          },
+          "&::-webkit-scrollbar-thumb": {
+            backgroundColor: "#333", // subtle thumb
+            borderRadius: 10,
+            transition: "background 0.3s ease",
+          },
+          "&::-webkit-scrollbar-thumb:hover": {
+            backgroundColor: "#666", // lighter on hover
+          },
+          "&::-webkit-scrollbar-corner": {
+            backgroundColor: "transparent",
+          },
+          scrollbarWidth: "thin",
+          scrollbarColor: "#333 #111",
         }}
       >
-        <Table sx={{ minWidth: "1200px" }}>
-          {" "}
-          {/* ✅ force wide table so scroll kicks in */}
+        <Table sx={{ minWidth: 1200 }}>
           <TableHead>
             <TableRow>
-              <TableCell>User</TableCell>
-              <TableCell>Severity</TableCell>
-              <TableCell>Status</TableCell>
-              <TableCell>Hate Speech</TableCell>
-              <TableCell>Tribalism</TableCell>
-              <TableCell>Extremism</TableCell>
-              <TableCell>Cyberbullying</TableCell>
-              <TableCell>Disinformation</TableCell>
-              <TableCell>Incitement</TableCell>
-              <TableCell align="center">Actions</TableCell>
+              <TableCell
+                sx={{
+                  position: "sticky",
+                  left: 0,
+                  zIndex: 3,
+                  background: "#1E1E1E",
+                  fontWeight: "bold",
+                  whiteSpace: "nowrap",
+                }}
+              >
+                User
+              </TableCell>
+              <TableCell sx={{ whiteSpace: "nowrap", fontWeight: "bold" }}>
+                Severity
+              </TableCell>
+              <TableCell sx={{ whiteSpace: "nowrap", fontWeight: "bold" }}>
+                Status
+              </TableCell>
+              <TableCell sx={{ whiteSpace: "nowrap", fontWeight: "bold" }}>
+                Hate Speech
+              </TableCell>
+              <TableCell sx={{ whiteSpace: "nowrap", fontWeight: "bold" }}>
+                Tribalism
+              </TableCell>
+              <TableCell sx={{ whiteSpace: "nowrap", fontWeight: "bold" }}>
+                Extremism
+              </TableCell>
+              <TableCell sx={{ whiteSpace: "nowrap", fontWeight: "bold" }}>
+                Cyberbullying
+              </TableCell>
+              <TableCell sx={{ whiteSpace: "nowrap", fontWeight: "bold" }}>
+                Disinformation
+              </TableCell>
+              <TableCell sx={{ whiteSpace: "nowrap", fontWeight: "bold" }}>
+                Incitement
+              </TableCell>
+              <TableCell
+                sx={{ whiteSpace: "nowrap", fontWeight: "bold" }}
+                align="center"
+              >
+                Actions
+              </TableCell>
             </TableRow>
           </TableHead>
+
           <TableBody>
             {filteredData.map((row) => (
               <TableRow key={row.id} hover>
-                <TableCell>
-                  <Box display="flex" alignItems="center" gap={2}>
-                    <Avatar src={row.avatar} alt={row.name} />
-                    <Box>
-                      <Typography variant="subtitle2">{row.name}</Typography>
-                      <Typography
-                        variant="body2"
-                        color="text.secondary"
-                        fontSize="0.8rem"
-                      >
-                        {row.handle}
-                      </Typography>
-                    </Box>
-                  </Box>
+                <TableCell
+                  sx={{
+                    position: "sticky",
+                    left: 0,
+                    zIndex: 3,
+                    background: "#1E1E1E",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 1.5,
+                    whiteSpace: "nowrap",
+                    fontWeight: 500,
+                  }}
+                >
+                  <img
+                    src={row.avatar || "/placeholder-user.png"}
+                    alt={row.user}
+                    style={{
+                      width: 36,
+                      height: 36,
+                      borderRadius: "50%",
+                      objectFit: "cover",
+                      border: "1px solid #333",
+                      flexShrink: 0,
+                    }}
+                  />
+                  <span>{row.user}</span>
                 </TableCell>
-                <TableCell sx={{ width: 150 }}>
+                <TableCell sx={{ whiteSpace: "nowrap" }}>
                   <LinearProgress
                     variant="determinate"
                     value={row.severity}
                     color="error"
                     sx={{ height: 8, borderRadius: 5 }}
                   />
-                  <Typography variant="caption">{row.severity}</Typography>
                 </TableCell>
-                <TableCell>
+                <TableCell sx={{ whiteSpace: "nowrap" }}>
                   <Chip
                     label={row.status}
                     color={getStatusColor(row.status)}
                     size="small"
                   />
                 </TableCell>
-                <TableCell>{row.hate}</TableCell>
-                <TableCell>{row.tribalism}</TableCell>
-                <TableCell>{row.extremism}</TableCell>
-                <TableCell>{row.cyberbullying}</TableCell>
-                <TableCell>{row.disinfo}</TableCell>
-                <TableCell>{row.incitement}</TableCell>
-                <TableCell align="center">
+                <TableCell sx={{ whiteSpace: "nowrap" }}>{row.hate}</TableCell>
+                <TableCell sx={{ whiteSpace: "nowrap" }}>
+                  {row.tribalism}
+                </TableCell>
+                <TableCell sx={{ whiteSpace: "nowrap" }}>
+                  {row.extremism}
+                </TableCell>
+                <TableCell sx={{ whiteSpace: "nowrap" }}>
+                  {row.cyberbullying}
+                </TableCell>
+                <TableCell sx={{ whiteSpace: "nowrap" }}>
+                  {row.disinfo}
+                </TableCell>
+                <TableCell sx={{ whiteSpace: "nowrap" }}>
+                  {row.incitement}
+                </TableCell>
+                <TableCell align="center" sx={{ whiteSpace: "nowrap" }}>
                   <IconButton onClick={(e) => handleMenuOpen(e, row.id)}>
                     <MoreVertical className="w-5 h-5 text-gray-400" />
                   </IconButton>

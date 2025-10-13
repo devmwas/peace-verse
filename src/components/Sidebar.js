@@ -151,7 +151,29 @@ const Sidebar = ({ onNavLinkClick, activePath }) => {
         </Box>
 
         {/* Primary Navigation */}
-        <Box sx={{ flexGrow: 1, overflowY: "auto" }}>
+        <Box
+          sx={{
+            flexGrow: 1,
+            overflowY: "auto",
+            /* ✅ Custom dark scrollbar */
+            "&::-webkit-scrollbar": {
+              width: 8,
+            },
+            "&::-webkit-scrollbar-track": {
+              backgroundColor: "#111",
+            },
+            "&::-webkit-scrollbar-thumb": {
+              backgroundColor: "#444",
+              borderRadius: 8,
+              "&:hover": {
+                backgroundColor: "#666",
+              },
+            },
+            /* Optional: for Firefox */
+            scrollbarWidth: "thin",
+            scrollbarColor: "#444 #111",
+          }}
+        >
           <List disablePadding>
             {primaryNavItems.map((item) => (
               <ListItemButton
