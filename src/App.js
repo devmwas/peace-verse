@@ -5,7 +5,8 @@ import Box from "@mui/material/Box";
 import { Radio, Typography } from "@mui/material";
 
 // --- NEW IMPORT FOR AUTH ---
-import { Auth } from "./components/Auth";
+// import { Auth } from "./components/Auth";
+import { AuthProvider } from "./components/auth/AuthProvider";
 // Import the Sidebar, Polling Component, and the NEW MobileNav
 import Sidebar from "./components/Sidebar";
 import BillPolling from "./components/BillPolling";
@@ -124,7 +125,7 @@ function App() {
     <ThemeProvider theme={darkTheme}>
       <CssBaseline />
       {/* --- Auth wraps the entire application logic --- */}
-      <Auth>
+      <AuthProvider>
         <Box sx={{ display: "flex", minHeight: "100vh" }}>
           {/* 1. Desktop Sidebar Component (Fixed position) */}
           <Sidebar
@@ -152,8 +153,7 @@ function App() {
           {/* 3. Mobile Navigation (Fixed bottom bar) */}
           <MobileNav onNavLinkClick={setActivePath} activePath={activePath} />
         </Box>
-      </Auth>
-         {" "}
+      </AuthProvider>
     </ThemeProvider>
   );
 }

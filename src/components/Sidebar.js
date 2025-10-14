@@ -30,7 +30,7 @@ import {
 } from "react-icons/md";
 
 // For redirecting users to the auth component to sign in
-import { useAuth } from "./Auth";
+import { useAuth } from "./auth/AuthProvider";
 
 // Configuration Constants
 const COLORS = {

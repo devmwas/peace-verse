@@ -31,7 +31,7 @@ import {
   MdSecurity,
 } from "react-icons/md";
 
-import { useAuth } from "./Auth"; // 🔑 use the auth provider
+import { useAuth } from "./auth/AuthProvider"; // 🔑 use the auth provider
 
 const COLORS = {
   ACCENT_YELLOW: "#FBC02D",
