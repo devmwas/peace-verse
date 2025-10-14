@@ -7,15 +7,18 @@ import React, {
 } from "react";
 import { initializeApp } from "firebase/app";
 import {
-  getAuth, // Providers & Methods
+  getAuth,
   GoogleAuthProvider,
   signInWithPopup,
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
   signInWithPhoneNumber,
   RecaptchaVerifier,
+  signInAnonymously,
   signOut,
   onAuthStateChanged,
+  setPersistence,
+  browserLocalPersistence,
 } from "firebase/auth";
 import { getFirestore, doc, setDoc, serverTimestamp } from "firebase/firestore";
 import {
@@ -28,59 +31,38 @@ import {
   Alert,
   IconButton,
 } from "@mui/material";
-// Icons for providers and actions
 import {
   Chrome,
   Mail,
-  Lock,
-  UserPlus,
   LogIn,
   Smartphone,
   ArrowLeft,
+  Phone,
+  UserPlus,
+  HatGlasses,
 } from "lucide-react";
-
-// --- Firebase Configuration ---
 import { FIREBASE_CONFIG } from "../firebaseConfig";
 
-// --- Context Setup ---
-const AuthContext = createContext({
-  user: null,
-  isAuthenticated: false,
-  loading: true,
-  signInWithGoogle: () => {},
-  signInWithEmail: () => {},
-  signUpWithEmail: () => {},
-  signInWithPhone: () => {},
-  confirmVerificationCode: () => {},
-  signOutUser: () => {},
-});
-
+const AuthContext = createContext();
 export const useAuth = () => useContext(AuthContext);
 
-// --- Firebase Initialization ---
-let app;
-let auth;
-let db;
-
-// Flag to indicate if initialization was attempted successfully (i.e., not using placeholders)
+let app, auth, db;
 let isFirebaseInitialized = false;
 
-// Only initialize if the firebase details are correctly set
-if (FIREBASE_CONFIG && FIREBASE_CONFIG.apiKey !== "YOUR_API_KEY_HERE") {
+// --- Initialize Firebase ---
+if (FIREBASE_CONFIG && FIREBASE_CONFIG.apiKey) {
   app = initializeApp(FIREBASE_CONFIG);
   auth = getAuth(app);
   db = getFirestore(app);
+  setPersistence(auth, browserLocalPersistence);
   isFirebaseInitialized = true;
 } else {
-  console.error(
-    "CRITICAL ERROR: Firebase configuration is missing or using placeholders. Please update FIREBASE_CONFIG for local development."
-  );
+  console.error("❌ Firebase config missing or invalid!");
 }
 
-// --- Firestore Sync Function ---
+// --- Firestore Sync ---
 const syncUserDocument = async (user, displayNameOverride = null) => {
   if (!db || !user || user.isAnonymous) return;
-
   const userRef = doc(db, "users", user.uid);
 
   await setDoc(
@@ -90,7 +72,7 @@ const syncUserDocument = async (user, displayNameOverride = null) => {
       displayName:
         displayNameOverride || user.displayName || "Authenticated User",
       email: user.email || null,
-      phoneNumber: user.phoneNumber || null, // Capture phone number
+      phoneNumber: user.phoneNumber || null,
       photoURL: user.photoURL || null,
       createdAt: user.metadata.creationTime
         ? new Date(user.metadata.creationTime)
@@ -99,524 +81,349 @@ const syncUserDocument = async (user, displayNameOverride = null) => {
     },
     { merge: true }
   );
-
-  console.log("User profile synced to Firestore:", user.uid);
 };
 
-// --- Auth Provider Component (Named Auth as requested) ---
 export const Auth = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [authError, setAuthError] = useState("");
+  const [authMode, setAuthMode] = useState("main");
   const [isSigningUp, setIsSigningUp] = useState(false);
-  const [authMode, setAuthMode] = useState("main"); // 'main', 'email', 'phone' // --- Phone Auth State ---
+
+  const [isGoogleLoading, setIsGoogleLoading] = useState(false);
+  const [isEmailLoading, setIsEmailLoading] = useState(false);
+  const [isPhoneLoading, setIsPhoneLoading] = useState(false);
+  const [isCodeVerifying, setIsCodeVerifying] = useState(false);
+  const [isAnonLoading, setIsAnonLoading] = useState(false);
 
   const [phoneNumber, setPhoneNumber] = useState("");
   const [verificationCode, setVerificationCode] = useState("");
   const [confirmationResult, setConfirmationResult] = useState(null);
-  const recaptchaRef = useRef(null); // Ref for reCAPTCHA container // 1. Initial Authentication Handler (Relies solely on onAuthStateChanged)
+  const recaptchaContainer = useRef(null);
+  const codeInputRef = useRef(null);
 
+  // --- Auth State Listener ---
   useEffect(() => {
     if (!auth) {
       setLoading(false);
       return;
     }
 
-    // Check for existing session and start listener
-    const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
+    const unsub = onAuthStateChanged(auth, (firebaseUser) => {
       setUser(firebaseUser);
       if (firebaseUser && !firebaseUser.isAnonymous) {
         syncUserDocument(firebaseUser);
       }
-      setLoading(false); // Auth state is resolved whether signed in or out
+      setLoading(false);
     });
 
-    return () => unsubscribe && unsubscribe();
-  }, []); // Empty dependency array ensures this runs once // 2. Google Sign-In Method
+    return () => unsub();
+  }, []);
 
+  // --- Sign in with Google ---
   const signInWithGoogle = async () => {
     setAuthError("");
-    if (!auth) return;
-    const provider = new GoogleAuthProvider();
+    setIsGoogleLoading(true);
     try {
+      const provider = new GoogleAuthProvider();
       provider.setCustomParameters({ prompt: "select_account" });
       await signInWithPopup(auth, provider);
     } catch (error) {
       setAuthError(error.message);
-      console.error("Google Sign-In failed:", error);
+    } finally {
+      setIsGoogleLoading(false);
     }
-  }; // 3. Email/Password Sign-Up Method
+  };
 
+  // --- Email Auth ---
   const signUpWithEmail = async (email, password, displayName) => {
     setAuthError("");
-    if (!auth) return;
+    setIsEmailLoading(true);
     try {
-      const userCredential = await createUserWithEmailAndPassword(
+      const userCred = await createUserWithEmailAndPassword(
         auth,
         email,
         password
       );
-      await syncUserDocument(userCredential.user, displayName);
+      await syncUserDocument(userCred.user, displayName);
     } catch (error) {
       setAuthError(error.message);
-      console.error("Email Sign-Up failed:", error);
+    } finally {
+      setIsEmailLoading(false);
     }
-  }; // 4. Email/Password Sign-In Method
+  };
 
   const signInWithEmail = async (email, password) => {
     setAuthError("");
-    if (!auth) return;
+    setIsEmailLoading(true);
     try {
       await signInWithEmailAndPassword(auth, email, password);
     } catch (error) {
       setAuthError(error.message);
-      console.error("Email Sign-In failed:", error);
+    } finally {
+      setIsEmailLoading(false);
     }
-  }; // 5. Phone Sign-In Method (Send SMS)
+  };
 
+  // --- Phone Auth ---
   const signInWithPhone = async () => {
     setAuthError("");
-
-    // FIX 2: Check global initialization flag
     if (!auth || !isFirebaseInitialized) {
-      setAuthError("Firebase is not configured. Please check your config.");
+      setAuthError("Firebase not initialized.");
+      return;
+    }
+
+    if (!phoneNumber.startsWith("+")) {
+      setAuthError("Enter phone number with country code (e.g. +2547...).");
       return;
     }
 
     try {
-      // Must have a valid phone number (e.g., +2547XXXXXXXX)
-      if (!phoneNumber || phoneNumber.length < 10) {
-        setAuthError(
-          "Please enter a valid phone number (including country code, e.g., +254)."
-        );
-        return;
-      } // 1. Ensure reCAPTCHA Verifier is ready (renders the reCAPTCHA widget)
+      setIsPhoneLoading(true);
 
-      const recaptchaVerifier = new RecaptchaVerifier(
-        recaptchaRef.current,
-        {
-          size: "normal",
-          callback: (response) => {
-            // reCAPTCHA solved, allow SMS send
-          },
-          "expired-callback": () => {
-            setAuthError("reCAPTCHA expired. Please retry.");
-          },
-        },
-        auth
-      ); // 2. Wait for verification code send
+      if (!window.recaptchaVerifier) {
+        window.recaptchaVerifier = new RecaptchaVerifier(
+          auth,
+          recaptchaContainer.current,
+          { size: "invisible" }
+        );
+        await window.recaptchaVerifier.render();
+      }
 
       const confirmation = await signInWithPhoneNumber(
         auth,
         phoneNumber,
-        recaptchaVerifier
+        window.recaptchaVerifier
       );
+
       setConfirmationResult(confirmation);
-      setAuthError("Verification code sent! Check your phone.");
+      setAuthError("Verification code sent!");
+      setTimeout(() => codeInputRef.current?.focus(), 300);
     } catch (error) {
-      // If error is related to reCAPTCHA being missing/invalid
-      if (error.code === "auth/captcha-check-failed") {
-        setAuthError("Security check failed. Please refresh and try again.");
-      } else {
-        setAuthError(`SMS failed: ${error.message}`);
-      }
-      console.error("Phone Sign-In failed:", error);
-      setConfirmationResult(null); // Reset flow
+      console.error("Phone Sign-In Error:", error);
+      setAuthError(error.message);
+      setConfirmationResult(null);
+    } finally {
+      setIsPhoneLoading(false);
     }
-  }; // 6. Confirm SMS Code
+  };
 
   const confirmVerificationCode = async () => {
-    setAuthError("");
     if (!confirmationResult || !verificationCode) return;
-
+    setAuthError("");
+    setIsCodeVerifying(true);
     try {
-      // This attempts to sign in the user
-      await confirmationResult.confirm(verificationCode); // The onAuthStateChanged listener will handle syncing the profile
+      await confirmationResult.confirm(verificationCode);
     } catch (error) {
       setAuthError("Invalid code. Please try again.");
-      console.error("Verification code confirmation failed:", error);
+    } finally {
+      setIsCodeVerifying(false);
     }
-  }; // 7. Sign-Out Method
+  };
+
+  // --- Anonymous Auth ---
+  const signInAnonymous = async () => {
+    setAuthError("");
+    setIsAnonLoading(true);
+    try {
+      await signInAnonymously(auth);
+    } catch (error) {
+      setAuthError(error.message);
+    } finally {
+      setIsAnonLoading(false);
+    }
+  };
 
   const signOutUser = async () => {
-    setAuthError("");
-    if (!auth) return;
-    try {
-      await signOut(auth);
-    } catch (error) {
-      console.error("Sign Out failed:", error);
-    }
+    await signOut(auth);
   };
 
   const value = {
     user,
-    isAuthenticated: !!user && !user.isAnonymous,
     loading,
+    isAuthenticated: !!user && !user.isAnonymous,
+    isAnonymous: !!user && user.isAnonymous,
     signInWithGoogle,
     signInWithEmail,
     signUpWithEmail,
     signInWithPhone,
     confirmVerificationCode,
+    signInAnonymous,
     signOutUser,
-  }; // --- Component for Email/Password Form ---
+  };
 
+  // --- Email Auth Form ---
   const EmailAuthForm = () => {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [displayName, setDisplayName] = useState("");
 
-    const handleSubmit = async (e) => {
+    const handleSubmit = (e) => {
       e.preventDefault();
       if (isSigningUp) {
-        await signUpWithEmail(email, password, displayName);
+        signUpWithEmail(email, password, displayName);
       } else {
-        await signInWithEmail(email, password);
+        signInWithEmail(email, password);
       }
     };
 
     return (
-      <Box
-        component="form"
-        onSubmit={handleSubmit}
-        sx={{
-          display: "flex",
-          flexDirection: "column",
-          gap: 2,
-          width: "100%",
-          mt: 2,
-        }}
-      >
-               {" "}
-        {isSigningUp && (
-          <TextField
-            label="Full Name"
-            value={displayName}
-            onChange={(e) => setDisplayName(e.target.value)}
-            variant="outlined"
-            required
-            size="small"
-            InputProps={{
-              startAdornment: (
-                <UserPlus size={28} strokeWidth={2} color="#43A047" />
-              ),
-            }}
-            sx={{ input: { color: "text.primary" } }}
-          />
-        )}
-               {" "}
-        <TextField
-          label="Email Address"
-          type="email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          variant="outlined"
-          required
-          size="small"
-          InputProps={{
-            startAdornment: <Mail size={28} strokeWidth={2} color="#1976D2" />,
-          }}
-          sx={{ input: { color: "text.primary" } }}
-        />
-               {" "}
-        <TextField
-          label="Password"
-          type="password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          variant="outlined"
-          required
-          size="small"
-          InputProps={{
-            startAdornment: <Lock size={28} strokeWidth={2} color="#E53935" />,
-          }}
-          sx={{ input: { color: "text.primary" } }}
-        />
-               {" "}
-        <Button
-          type="submit"
-          variant="contained"
-          color="primary"
-          startIcon={
-            isSigningUp ? (
-              <UserPlus size={28} strokeWidth={2} color="#43A047" />
-            ) : (
-              <LogIn size={28} strokeWidth={2} color="#1976D2" />
-            )
-          }
-          sx={{ py: 1, fontWeight: "bold", mt: 1 }}
-        >
-                    {isSigningUp ? "Sign Up" : "Sign In"}       {" "}
-        </Button>
-               {" "}
-        <Button
-          onClick={() => setIsSigningUp(!isSigningUp)}
-          sx={{ color: "text.secondary", mt: 1 }}
-        >
-                   {" "}
-          {isSigningUp
-            ? "Already have an account? Sign In"
-            : "Don't have an account? Sign Up"}
-                 {" "}
-        </Button>
-             {" "}
-      </Box>
-    );
-  }; // --- Component for Phone Auth Flow ---
-
-  const PhoneAuthForm = () => {
-    const handleSendCode = (e) => {
-      e.preventDefault();
-      signInWithPhone();
-    };
-
-    const handleConfirmCode = (e) => {
-      e.preventDefault();
-      confirmVerificationCode();
-    };
-
-    return (
-      <Box sx={{ width: "100%", mt: 2 }}>
-                {/* Back Button */}       {" "}
-        <IconButton
-          onClick={() => {
-            setAuthMode("main");
-            setAuthError("");
-            setConfirmationResult(null);
-          }}
-          sx={{ color: "text.secondary", mb: 1 }}
-        >
-                    <ArrowLeft />         {" "}
-          <Typography variant="body2" sx={{ ml: 1 }}>
-                        Back to main options          {" "}
-          </Typography>
-                 {" "}
+      <Box sx={{ width: "100%", maxWidth: 360 }}>
+        <IconButton onClick={() => setAuthMode("main")} sx={{ mb: 1 }}>
+          <ArrowLeft />
+          <Typography sx={{ ml: 1 }}>Back</Typography>
         </IconButton>
-               {" "}
-        <Typography
-          variant="h6"
-          color="text.primary"
-          sx={{ mb: 2, textAlign: "center" }}
+
+        {authError && <Alert severity="error">{authError}</Alert>}
+        <Box
+          component="form"
+          onSubmit={handleSubmit}
+          sx={{ display: "flex", flexDirection: "column", gap: 2 }}
         >
-                    Sign In with Phone Number        {" "}
-        </Typography>
-               {" "}
-        {confirmationResult === null ? (
-          // --- STEP 1: Enter Phone Number and reCAPTCHA ---
-          <Box
-            component="form"
-            onSubmit={handleSendCode}
-            sx={{ display: "flex", flexDirection: "column", gap: 2 }}
-          >
-                       {" "}
+          {isSigningUp && (
             <TextField
-              label="Phone Number (e.g., +2547XXXXXXXX)"
-              type="tel"
-              value={phoneNumber}
-              onChange={(e) => setPhoneNumber(e.target.value)}
-              variant="outlined"
-              required
+              label="Full Name"
+              value={displayName}
+              onChange={(e) => setDisplayName(e.target.value)}
               size="small"
-              InputProps={{
-                startAdornment: (
-                  <Smartphone size={28} strokeWidth={2} color="#6A1B9A" />
-                ),
-              }}
-              sx={{ input: { color: "text.primary" } }}
+              disabled={isEmailLoading}
             />
-                       {" "}
-            {/* ReCAPTCHA Container (Must be rendered before calling signInWithPhoneNumber) */}
-                       {" "}
-            <Box
-              ref={recaptchaRef}
-              id="recaptcha-container"
-              sx={{ my: 1, display: "flex", justifyContent: "center" }}
-            />
-                       {" "}
-            <Button
-              type="submit"
-              variant="contained"
-              color="primary"
-              startIcon={
-                <Smartphone size={28} strokeWidth={2} color="#6A1B9A" />
-              }
-              sx={{ py: 1, fontWeight: "bold" }}
-            >
-                            Send Verification Code            {" "}
-            </Button>
-                     {" "}
-          </Box>
-        ) : (
-          // --- STEP 2: Enter Verification Code ---
-          <Box
-            component="form"
-            onSubmit={handleConfirmCode}
-            sx={{ display: "flex", flexDirection: "column", gap: 2 }}
+          )}
+          <TextField
+            label="Email"
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            size="small"
+            disabled={isEmailLoading}
+          />
+          <TextField
+            label="Password"
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            size="small"
+            disabled={isEmailLoading}
+          />
+          <Button
+            type="submit"
+            variant="contained"
+            disabled={isEmailLoading}
+            startIcon={
+              isEmailLoading ? <CircularProgress size={20} /> : <LogIn />
+            }
           >
-                       {" "}
-            <Alert severity="info" sx={{ mb: 1 }}>
-                            Code sent to {phoneNumber}.            {" "}
-            </Alert>
-                       {" "}
-            <TextField
-              label="Verification Code"
-              type="number"
-              value={verificationCode}
-              onChange={(e) => setVerificationCode(e.target.value)}
-              variant="outlined"
-              required
-              size="small"
-              InputProps={{
-                startAdornment: (
-                  <Lock size={28} strokeWidth={2} color="#E53935" />
-                ),
-              }}
-              sx={{ input: { color: "text.primary" } }}
-            />
-                       {" "}
-            <Button
-              type="submit"
-              variant="contained"
-              color="primary"
-              startIcon={<LogIn />}
-              sx={{ py: 1, fontWeight: "bold" }}
-            >
-                            Confirm Code & Sign In            {" "}
-            </Button>
-                     {" "}
-          </Box>
-        )}
-             {" "}
+            {isSigningUp ? "Sign Up" : "Sign In"}
+          </Button>
+          <Button
+            onClick={() => setIsSigningUp(!isSigningUp)}
+            sx={{ color: "text.secondary" }}
+          >
+            {isSigningUp ? "Already have an account?" : "Create a new account"}
+          </Button>
+        </Box>
       </Box>
     );
-  }; // --- Authentication Gate (UI) ---
+  };
 
-  if (loading) {
+  // --- Phone Auth Form ---
+  const PhoneAuthForm = () => (
+    <Box sx={{ width: "100%", maxWidth: 360 }}>
+      <IconButton onClick={() => setAuthMode("main")} sx={{ mb: 1 }}>
+        <ArrowLeft />
+        <Typography sx={{ ml: 1 }}>Back</Typography>
+      </IconButton>
+
+      {authError && (
+        <Alert severity={authError.includes("sent") ? "info" : "error"}>
+          {authError}
+        </Alert>
+      )}
+      {!confirmationResult ? (
+        <Box
+          component="form"
+          onSubmit={(e) => {
+            e.preventDefault();
+            signInWithPhone();
+          }}
+        >
+          <TextField
+            label="Phone Number (+2547...)"
+            type="tel"
+            value={phoneNumber}
+            onChange={(e) => setPhoneNumber(e.target.value)}
+            fullWidth
+            size="small"
+            disabled={isPhoneLoading}
+          />
+          <div ref={recaptchaContainer} id="recaptcha-container" />
+          <Button
+            type="submit"
+            variant="contained"
+            sx={{ mt: 2 }}
+            disabled={isPhoneLoading}
+            startIcon={
+              isPhoneLoading ? <CircularProgress size={20} /> : <Smartphone />
+            }
+          >
+            {isPhoneLoading ? "Sending..." : "Send Verification Code"}
+          </Button>
+        </Box>
+      ) : (
+        <Box
+          component="form"
+          onSubmit={(e) => {
+            e.preventDefault();
+            confirmVerificationCode();
+          }}
+        >
+          <Alert severity="info" sx={{ mb: 1 }}>
+            Code sent to {phoneNumber}
+          </Alert>
+          <TextField
+            inputRef={codeInputRef}
+            label="Verification Code"
+            type="number"
+            value={verificationCode}
+            onChange={(e) => setVerificationCode(e.target.value)}
+            fullWidth
+            size="small"
+            disabled={isCodeVerifying}
+            autoFocus
+          />
+          <Button
+            type="submit"
+            variant="contained"
+            sx={{ mt: 2 }}
+            disabled={isCodeVerifying}
+            startIcon={
+              isCodeVerifying ? <CircularProgress size={20} /> : <LogIn />
+            }
+          >
+            {isCodeVerifying ? "Verifying..." : "Confirm Code"}
+          </Button>
+        </Box>
+      )}
+    </Box>
+  );
+
+  // --- Loading Spinner ---
+  if (loading)
     return (
       <Box
         sx={{
+          height: "100vh",
           display: "flex",
           justifyContent: "center",
           alignItems: "center",
-          height: "100vh",
-          bgcolor: "#121212",
         }}
       >
-                <CircularProgress color="primary" />     {" "}
+        <CircularProgress />
       </Box>
     );
-  } // Main Sign-In Screen
 
-  if (!user || user.isAnonymous) {
-    let content;
-
-    if (authMode === "phone") {
-      content = <PhoneAuthForm />;
-    } else if (authMode === "email") {
-      // Toggle back to main view when form is submitted/cancelled
-      content = (
-        <Box sx={{ width: "100%", maxWidth: 360 }}>
-                   {" "}
-          <IconButton
-            onClick={() => setAuthMode("main")}
-            sx={{ color: "text.secondary", alignSelf: "flex-start", mb: 1 }}
-          >
-                        <ArrowLeft />           {" "}
-            <Typography variant="body2" sx={{ ml: 1 }}>
-                            Back to main options            {" "}
-            </Typography>
-                     {" "}
-          </IconButton>
-                    <EmailAuthForm />       {" "}
-        </Box>
-      );
-    } else {
-      // authMode === 'main'
-      content = (
-        <Box sx={{ width: "100%", maxWidth: 360 }}>
-                   {" "}
-          <Typography
-            variant="h4"
-            color="text.primary"
-            sx={{ mb: 1, textAlign: "center" }}
-          >
-                        Welcome to Amani360          {" "}
-          </Typography>
-                   {" "}
-          <Typography
-            variant="body1"
-            color="text.secondary"
-            sx={{ mb: 4, textAlign: "center" }}
-          >
-                        Please sign in to securely participate in governance and
-            proposals.          {" "}
-          </Typography>
-                   {" "}
-          {authError && (
-            <Alert severity="error" sx={{ mb: 2 }}>
-                            {authError}           {" "}
-            </Alert>
-          )}
-                    {/* --- Google Sign In --- */}         {" "}
-          <Button
-            variant="outlined"
-            startIcon={<Chrome />}
-            onClick={signInWithGoogle}
-            sx={{
-              py: 1.5,
-              mb: 2,
-              width: "100%",
-              borderColor: "#EA4335",
-              color: "text.primary",
-              "&:hover": {
-                backgroundColor: "rgba(255, 255, 255, 0.08)",
-                borderColor: "#EA4335",
-              },
-            }}
-          >
-                        Sign In with Google          {" "}
-          </Button>
-                   {" "}
-          <Divider sx={{ mb: 3 }}>
-                       {" "}
-            <Typography variant="caption" color="text.secondary">
-                            OR            {" "}
-            </Typography>
-                     {" "}
-          </Divider>
-                    {/* --- Other Sign In Options --- */}         {" "}
-          <Button
-            variant="outlined"
-            startIcon={<Mail />}
-            onClick={() => setAuthMode("email")}
-            sx={{
-              py: 1,
-              mb: 1,
-              width: "100%",
-              color: "text.primary",
-              borderColor: "text.secondary",
-            }}
-          >
-                        Use Email & Password          {" "}
-          </Button>
-                   {" "}
-          <Button
-            variant="outlined"
-            startIcon={<Smartphone />}
-            onClick={() => setAuthMode("phone")}
-            sx={{
-              py: 1,
-              width: "100%",
-              color: "text.primary",
-              borderColor: "text.secondary",
-            }}
-          >
-                        Use Phone Number          {" "}
-          </Button>
-                 {" "}
-        </Box>
-      );
-    }
-
+  // --- Unauthenticated ---
+  if (!user)
     return (
       <Box
         sx={{
@@ -629,21 +436,62 @@ export const Auth = ({ children }) => {
           p: 3,
         }}
       >
-                {content}       {" "}
-        {!isFirebaseInitialized ? (
-          <Typography
-            variant="caption"
-            color="error"
-            sx={{ mt: 3, textAlign: "center" }}
-          >
-                        WARNING: Firebase configuration is missing or using
-            placeholders. Cannot authenticate.          {" "}
-          </Typography>
-        ) : null}
-             {" "}
+        {authMode === "main" && (
+          <Box sx={{ width: "100%", maxWidth: 360 }}>
+            <Typography variant="h4" sx={{ mb: 1, textAlign: "center" }}>
+              Welcome to Amani360
+            </Typography>
+            {authError && <Alert severity="error">{authError}</Alert>}
+            <Button
+              variant="outlined"
+              startIcon={
+                isGoogleLoading ? <CircularProgress size={20} /> : <Chrome />
+              }
+              onClick={signInWithGoogle}
+              disabled={isGoogleLoading}
+              sx={{ py: 1.5, mb: 2, width: "100%" }}
+            >
+              {isGoogleLoading ? "Signing in..." : "Sign In with Google"}
+            </Button>
+            <Divider sx={{ mb: 3 }}>
+              <Typography variant="caption">OR</Typography>
+            </Divider>
+            <Button
+              variant="outlined"
+              startIcon={<Mail />}
+              onClick={() => setAuthMode("email")}
+              fullWidth
+              sx={{ mb: 1 }}
+            >
+              Use Email & Password
+            </Button>
+            <Button
+              variant="outlined"
+              startIcon={<Phone />}
+              onClick={() => setAuthMode("phone")}
+              fullWidth
+              sx={{ mb: 1 }}
+            >
+              Use Phone Number
+            </Button>
+            <Button
+              variant="outlined"
+              startIcon={
+                isAnonLoading ? <CircularProgress size={20} /> : <HatGlasses />
+              }
+              onClick={signInAnonymous}
+              disabled={isAnonLoading}
+              fullWidth
+            >
+              {isAnonLoading ? "Entering..." : "Continue as Guest"}
+            </Button>
+          </Box>
+        )}
+        {authMode === "email" && <EmailAuthForm />}
+        {authMode === "phone" && <PhoneAuthForm />}
       </Box>
     );
-  } // Render the application when a signed-in user is present
 
+  // --- Authenticated ---
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };

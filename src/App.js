@@ -122,7 +122,7 @@ function App() {
 
   return (
     <ThemeProvider theme={darkTheme}>
-            <CssBaseline />
+      <CssBaseline />
       {/* --- Auth wraps the entire application logic --- */}
       <Auth>
         <Box sx={{ display: "flex", minHeight: "100vh" }}>

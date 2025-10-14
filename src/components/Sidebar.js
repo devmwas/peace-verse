@@ -294,7 +294,7 @@ const Sidebar = ({ onNavLinkClick, activePath }) => {
             </Box>
             <Divider />
 
-            {isAuthenticated ? (
+            {isAuthenticated && (
               <>
                 <MenuItem
                   onClick={() => {
@@ -305,26 +305,18 @@ const Sidebar = ({ onNavLinkClick, activePath }) => {
                   <User size={18} style={{ marginRight: 8 }} />
                   Profile
                 </MenuItem>
-                <MenuItem
-                  onClick={() => {
-                    handleMenuClose();
-                    signOutUser(); // 🔑 use Auth provider logout
-                  }}
-                >
-                  <LogOut size={18} style={{ marginRight: 8 }} />
-                  Sign Out
-                </MenuItem>
               </>
-            ) : (
-              <MenuItem
-                onClick={() => {
-                  handleMenuClose();
-                  onNavLinkClick("/auth"); // 🔑 take to Auth component
-                }}
-              >
-                <User size={18} style={{ marginRight: 8 }} />
-              </MenuItem>
             )}
+
+            <MenuItem
+              onClick={() => {
+                handleMenuClose();
+                signOutUser(); // 🔑 use Auth provider logout
+              }}
+            >
+              <LogOut size={18} style={{ marginRight: 8 }} />
+              Sign Out
+            </MenuItem>
 
             <MenuItem
               onClick={() => {
