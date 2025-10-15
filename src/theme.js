@@ -41,4 +41,12 @@ const darkTheme = createTheme({
   },
 });
 
+export const COLORS = {
+  ACCENT_YELLOW: "#FFC107",
+  ACCENT_BLUE: "#29B6F6",
+  BACKGROUND_DARK: "#121212",
+  TEXT_PRIMARY: "#FFFFFF",
+  TEXT_SECONDARY: "#B0B0B0",
+};
+
 export default darkTheme;

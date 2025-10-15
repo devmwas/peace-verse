@@ -11,8 +11,9 @@ import {
   MenuItem,
   Divider,
 } from "@mui/material";
+import { Avatar } from "@mui/material";
 // icon for anonymous
-import { LogOut, User } from "lucide-react";
+import { LogOut, User, HatGlasses } from "lucide-react";
 import {
   BsBullseye,
   BsTrophy,
@@ -285,10 +286,30 @@ const Sidebar = ({ onNavLinkClick, activePath }) => {
           >
             {/* Header */}
             <Box sx={{ px: 2, py: 1 }}>
-              <Typography variant="caption" color="text.secondary">
+              <Avatar
+                src={isAuthenticated ? user?.photoURL : null}
+                sx={{
+                  width: 64,
+                  height: 64,
+                  mx: "auto",
+                  bgcolor: !isAuthenticated ? "grey.700" : "primary.main",
+                }}
+              >
+                {!isAuthenticated && <HatGlasses size={28} />}
+              </Avatar>
+              <Typography
+                variant="caption"
+                color="text.secondary"
+                sx={{ display: "block", textAlign: "center", mt: 1 }}
+              >
                 Signed in as
               </Typography>
-              <Typography variant="body2" fontWeight={600} color="yellow">
+              <Typography
+                variant="body2"
+                fontWeight={600}
+                color="yellow"
+                sx={{ textAlign: "center" }}
+              >
                 {isAuthenticated ? getLastName(user.displayName) : "Anonymous"}
               </Typography>
             </Box>
@@ -329,7 +350,7 @@ const Sidebar = ({ onNavLinkClick, activePath }) => {
             <MenuItem
               onClick={() => {
                 handleMenuClose();
-                onNavLinkClick("/support");
+                onNavLinkClick("/help");
               }}
             >
               <BsQuestionCircle style={{ marginRight: 8 }} /> Help & Support

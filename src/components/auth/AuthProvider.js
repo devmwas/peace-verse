@@ -90,8 +90,9 @@ export const AuthProvider = ({ children }) => {
     }
     const unsub = onAuthStateChanged(auth, (firebaseUser) => {
       setUser(firebaseUser);
-      if (firebaseUser && !firebaseUser.isAnonymous)
+      if (firebaseUser && !firebaseUser.isAnonymous) {
         syncUserDocument(firebaseUser);
+      }
       setLoading(false);
     });
     return () => unsub();
@@ -125,10 +126,16 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  // --- Sign Out ---
   const signOutUser = async () => {
     await signOut(auth);
   };
 
+  // --- Derived flags ---
+  const isAuthenticated = !!user && !user.isAnonymous;
+  const isAnonymous = !!user?.isAnonymous;
+
+  // --- Context Value ---
   const value = {
     user,
     loading,
@@ -141,6 +148,8 @@ export const AuthProvider = ({ children }) => {
     signInAnonymous,
     auth,
     db,
+    isAuthenticated,
+    isAnonymous,
   };
 
   // --- UI States ---
@@ -178,6 +187,7 @@ export const AuthProvider = ({ children }) => {
                 Welcome to Amani360
               </Typography>
               {authError && <Alert severity="error">{authError}</Alert>}
+
               <Button
                 variant="outlined"
                 startIcon={
@@ -189,9 +199,11 @@ export const AuthProvider = ({ children }) => {
               >
                 {isGoogleLoading ? "Signing in..." : "Sign In with Google"}
               </Button>
+
               <Divider sx={{ mb: 3 }}>
                 <Typography variant="caption">OR</Typography>
               </Divider>
+
               <Button
                 variant="outlined"
                 startIcon={<Mail />}
@@ -201,6 +213,7 @@ export const AuthProvider = ({ children }) => {
               >
                 Use Email & Password
               </Button>
+
               <Button
                 variant="outlined"
                 startIcon={<Phone />}
@@ -210,6 +223,7 @@ export const AuthProvider = ({ children }) => {
               >
                 Use Phone Number
               </Button>
+
               <Button
                 variant="outlined"
                 startIcon={
