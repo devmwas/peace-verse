@@ -10,10 +10,6 @@ import {
   getAuth,
   GoogleAuthProvider,
   signInWithPopup,
-  createUserWithEmailAndPassword,
-  signInWithEmailAndPassword,
-  signInWithPhoneNumber,
-  RecaptchaVerifier,
   signInAnonymously,
   signOut,
   onAuthStateChanged,
@@ -33,6 +29,7 @@ import { Chrome, Mail, Phone, HatGlasses } from "lucide-react";
 import { FIREBASE_CONFIG } from "../../firebaseConfig";
 import EmailAuthForm from "./EmailAuthForm";
 import PhoneAuthForm from "./PhoneAuthForm";
+import { syncUserDocument } from "../../firebase/firestore";
 
 const AuthContext = createContext();
 export const useAuth = () => useContext(AuthContext);
@@ -52,27 +49,7 @@ if (FIREBASE_CONFIG && FIREBASE_CONFIG.apiKey) {
 }
 
 // --- Firestore Sync ---
-const syncUserDocument = async (user, displayNameOverride = null) => {
-  if (!db || !user || user.isAnonymous) return;
-  const userRef = doc(db, "users", user.uid);
-
-  await setDoc(
-    userRef,
-    {
-      uid: user.uid,
-      displayName:
-        displayNameOverride || user.displayName || "Authenticated User",
-      email: user.email || null,
-      phoneNumber: user.phoneNumber || null,
-      photoURL: user.photoURL || null,
-      createdAt: user.metadata.creationTime
-        ? new Date(user.metadata.creationTime)
-        : serverTimestamp(),
-      lastSignInTime: serverTimestamp(),
-    },
-    { merge: true }
-  );
-};
+const syncUserDocument = await syncUserDocument(user, displayNameOverride);
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
