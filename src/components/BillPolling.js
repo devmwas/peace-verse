@@ -88,7 +88,7 @@ const BillPolling = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   // Start on Parliamentary Bills tab (index 1) to match the screenshot
-  const [activeTab, setActiveTab] = useState(1);
+  const [activeTab, setActiveTab] = useState(0);
 
   // useEffect(() => {
   //   const loadBills = async () => {
@@ -304,16 +304,16 @@ const BillPolling = () => {
         {/* Left Section: Title and Subtitle */}
         <Box className="flex-grow min-w-[300px] md:pr-4">
           <Typography
-            variant="h4"
+            variant="h6"
             component="h1"
-            sx={{ fontWeight: 600, color: COLORS.HEADER_TITLE, mb: 0.5 }}
+            sx={{ color: COLORS.HEADER_TITLE }}
           >
             Public Participation & Polling
           </Typography>
           <Typography
             variant="body1"
             color="text.secondary"
-            sx={{ mb: { xs: 3, md: 0 } }}
+            sx={{ mb: { xs: 1, md: 0 } }}
           >
             Your voice matters. Vote on current issues and see real-time
             results.
@@ -324,7 +324,7 @@ const BillPolling = () => {
         <Box className="md:w-64 w-full md:mt-0 mt-3 flex-shrink-0 order-last md:order-none">
           <Button
             startIcon={<MdAddCircle />}
-            variant="outlined"
+            variant="text"
             onClick={() => setIsModalOpen(true)}
             // Ensure button uses the softer accent color
             sx={{

@@ -1,22 +1,12 @@
-import React, {
-  useState,
-  useEffect,
-  useContext,
-  createContext,
-  useRef,
-} from "react";
-import { initializeApp } from "firebase/app";
+import React, { useState, useEffect, useContext, createContext } from "react";
 import {
-  getAuth,
   GoogleAuthProvider,
   signInWithPopup,
   signInAnonymously,
+  signInWithRedirect,
   signOut,
   onAuthStateChanged,
-  setPersistence,
-  browserLocalPersistence,
 } from "firebase/auth";
-import { getFirestore, doc, setDoc, serverTimestamp } from "firebase/firestore";
 import {
   Box,
   Button,
@@ -26,14 +16,14 @@ import {
   Divider,
 } from "@mui/material";
 import { Chrome, Mail, Phone, HatGlasses } from "lucide-react";
-import { FIREBASE_CONFIG } from "../../firebaseConfig";
 import EmailAuthForm from "./EmailAuthForm";
 import PhoneAuthForm from "./PhoneAuthForm";
 import { syncUserDocument } from "../../firebase/firestore";
-import { db, auth, app } from "../../firebase/config";
+import { db, auth } from "../../firebase/config";
 
 const AuthContext = createContext();
 export const useAuth = () => useContext(AuthContext);
+const provider = new GoogleAuthProvider();
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
@@ -68,7 +58,9 @@ export const AuthProvider = ({ children }) => {
       provider.setCustomParameters({ prompt: "select_account" });
       await signInWithPopup(auth, provider);
     } catch (err) {
-      setAuthError(err.message);
+      if (err.code === "auth/popup-blocked") {
+        await signInWithRedirect(auth, provider);
+      } else setAuthError(err.message);
     } finally {
       setIsGoogleLoading(false);
     }
