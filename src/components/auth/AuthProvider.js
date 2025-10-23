@@ -105,7 +105,7 @@ export const AuthProvider = ({ children }) => {
     isAnonymous,
   };
 
-  // --- UI States ---
+  // --- Loading UI ---
   if (loading)
     return (
       <Box
@@ -114,12 +114,14 @@ export const AuthProvider = ({ children }) => {
           display: "flex",
           justifyContent: "center",
           alignItems: "center",
+          bgcolor: "#121212",
         }}
       >
-        <CircularProgress />
+        <CircularProgress sx={{ color: "#FFD54F" }} />
       </Box>
     );
 
+  // --- Auth UI ---
   if (!user) {
     return (
       <AuthContext.Provider value={value}>
@@ -130,67 +132,196 @@ export const AuthProvider = ({ children }) => {
             justifyContent: "center",
             alignItems: "center",
             height: "100vh",
-            bgcolor: "#121212",
+            bgcolor: "#0D0D0D",
             p: 3,
           }}
         >
           {authMode === "main" && (
-            <Box sx={{ width: "100%", maxWidth: 360 }}>
-              <Typography variant="h4" sx={{ mb: 1, textAlign: "center" }}>
+            <Box
+              sx={{
+                width: "100%",
+                maxWidth: 320,
+                mx: "auto",
+                textAlign: "center",
+                background: "rgba(255, 255, 255, 0.05)",
+                backdropFilter: "blur(10px)",
+                borderRadius: 4,
+                boxShadow: "0 8px 24px rgba(0, 0, 0, 0.2)",
+                p: 4,
+              }}
+            >
+              {/* --- Logo --- */}
+              <Box
+                component="img"
+                src="/logo.png"
+                alt="Amani360 Logo"
+                sx={{
+                  width: 90,
+                  height: 90,
+                  mb: 1,
+                  mx: "auto",
+                  display: "block",
+                  borderRadius: "50%",
+                  boxShadow: "0 0 12px rgba(255, 215, 0, 0.4)", // subtle golden glow
+                }}
+              />
+
+              {/* --- Title --- */}
+              <Typography
+                variant="h5"
+                sx={{
+                  mb: 2,
+                  fontWeight: 700,
+                  color: "#FFD54F",
+                  letterSpacing: 0.5,
+                }}
+              >
                 Welcome to Amani360
               </Typography>
-              {authError && <Alert severity="error">{authError}</Alert>}
 
+              {authError && (
+                <Alert severity="error" sx={{ mb: 2 }}>
+                  {authError}
+                </Alert>
+              )}
+
+              {/* --- Google --- */}
               <Button
                 variant="outlined"
-                startIcon={
-                  isGoogleLoading ? <CircularProgress size={20} /> : <Chrome />
-                }
                 onClick={signInWithGoogle}
                 disabled={isGoogleLoading}
-                sx={{ py: 1.5, mb: 2, width: "100%" }}
+                sx={{
+                  py: 1.3,
+                  mb: 2,
+                  width: "100%",
+                  justifyContent: "space-between",
+                  borderColor: "#FFD54F",
+                  color: "#FFD54F",
+                  "&:hover": {
+                    borderColor: "#FFC107",
+                    bgcolor: "rgba(255, 213, 79, 0.08)",
+                  },
+                }}
               >
-                {isGoogleLoading ? "Signing in..." : "Sign In with Google"}
-              </Button>
-
-              <Divider sx={{ mb: 3 }}>
-                <Typography variant="caption">OR</Typography>
-              </Divider>
-
-              <Button
-                variant="outlined"
-                startIcon={<Mail />}
-                onClick={() => setAuthMode("email")}
-                fullWidth
-                sx={{ mb: 1 }}
-              >
-                Use Email & Password
-              </Button>
-
-              <Button
-                variant="outlined"
-                startIcon={<Phone />}
-                onClick={() => setAuthMode("phone")}
-                fullWidth
-                sx={{ mb: 1 }}
-              >
-                Use Phone Number
-              </Button>
-
-              <Button
-                variant="outlined"
-                startIcon={
-                  isAnonLoading ? (
+                <Typography sx={{ flex: 1, textAlign: "left" }}>
+                  {isGoogleLoading ? "Signing in..." : "Sign In with Google"}
+                </Typography>
+                <Box
+                  sx={{
+                    width: 30,
+                    display: "flex",
+                    justifyContent: "flex-end",
+                  }}
+                >
+                  {isGoogleLoading ? (
                     <CircularProgress size={20} />
                   ) : (
-                    <HatGlasses />
-                  )
-                }
+                    <Chrome size={22} />
+                  )}
+                </Box>
+              </Button>
+
+              <Divider sx={{ mb: 2 }}>
+                <Typography variant="caption" sx={{ color: "#aaa" }}>
+                  OR
+                </Typography>
+              </Divider>
+
+              {/* --- Email --- */}
+              <Button
+                variant="outlined"
+                onClick={() => setAuthMode("email")}
+                sx={{
+                  py: 1.3,
+                  mb: 1.5,
+                  width: "100%",
+                  justifyContent: "space-between",
+                  borderColor: "#FFD54F",
+                  color: "#FFD54F",
+                  "&:hover": {
+                    borderColor: "#FFC107",
+                    bgcolor: "rgba(255, 213, 79, 0.08)",
+                  },
+                }}
+              >
+                <Typography sx={{ flex: 1, textAlign: "left" }}>
+                  Use Email & Password
+                </Typography>
+                <Box
+                  sx={{
+                    width: 30,
+                    display: "flex",
+                    justifyContent: "flex-end",
+                  }}
+                >
+                  <Mail size={22} />
+                </Box>
+              </Button>
+
+              {/* --- Phone --- */}
+              <Button
+                variant="outlined"
+                onClick={() => setAuthMode("phone")}
+                sx={{
+                  py: 1.3,
+                  mb: 1.5,
+                  width: "100%",
+                  justifyContent: "space-between",
+                  borderColor: "#FFD54F",
+                  color: "#FFD54F",
+                  "&:hover": {
+                    borderColor: "#FFC107",
+                    bgcolor: "rgba(255, 213, 79, 0.08)",
+                  },
+                }}
+              >
+                <Typography sx={{ flex: 1, textAlign: "left" }}>
+                  Use Phone Number
+                </Typography>
+                <Box
+                  sx={{
+                    width: 30,
+                    display: "flex",
+                    justifyContent: "flex-end",
+                  }}
+                >
+                  <Phone size={22} />
+                </Box>
+              </Button>
+
+              {/* --- Anonymous --- */}
+              <Button
+                variant="outlined"
                 onClick={signInAnonymous}
                 disabled={isAnonLoading}
-                fullWidth
+                sx={{
+                  py: 1.3,
+                  width: "100%",
+                  justifyContent: "space-between",
+                  borderColor: "#FFD54F",
+                  color: "#FFD54F",
+                  "&:hover": {
+                    borderColor: "#FFC107",
+                    bgcolor: "rgba(255, 213, 79, 0.08)",
+                  },
+                }}
               >
-                {isAnonLoading ? "Entering..." : "Continue as Guest"}
+                <Typography sx={{ flex: 1, textAlign: "left" }}>
+                  {isAnonLoading ? "Entering..." : "Continue as Guest"}
+                </Typography>
+                <Box
+                  sx={{
+                    width: 30,
+                    display: "flex",
+                    justifyContent: "flex-end",
+                  }}
+                >
+                  {isAnonLoading ? (
+                    <CircularProgress size={20} />
+                  ) : (
+                    <HatGlasses size={22} />
+                  )}
+                </Box>
               </Button>
             </Box>
           )}
