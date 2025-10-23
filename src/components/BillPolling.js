@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from "react";
-import { fetchBillData } from "../utils/dataFetcher";
+import { fetchBillsFromFirestore } from "../firebase/firestore";
+import ProposeBillModal from "./ProposeBillModal";
 import { motion } from "framer-motion";
+import { listenToBills } from "../firebase/firestore";
 import {
   Box,
   Card,
@@ -83,14 +85,37 @@ const renderOfflineHeaderLink = () => (
 const BillPolling = () => {
   const [bills, setBills] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   // Start on Parliamentary Bills tab (index 1) to match the screenshot
   const [activeTab, setActiveTab] = useState(1);
 
+  // useEffect(() => {
+  //   const loadBills = async () => {
+  //     try {
+  //       const fetchedBills = await fetchBillsFromFirestore();
+  //       setBills(fetchedBills);
+  //     } catch (error) {
+  //       console.error("Error fetching bills:", error);
+  //     } finally {
+  //       setIsLoading(false);
+  //     }
+  //   };
+
+  //   loadBills();
+  // }, []);
+
+  // Subscribes to Firestore in real-time.
+  // Updates the UI immediately when a new bill is proposed.
+  // Cleans up the listener when you navigate away.
   useEffect(() => {
-    const data = fetchBillData();
-    setBills(data);
-    setIsLoading(false);
+    const unsubscribe = listenToBills((fetchedBills) => {
+      setBills(fetchedBills);
+      setIsLoading(false);
+    });
+
+    // Cleanup on unmount
+    return () => unsubscribe();
   }, []);
 
   const handleTabChange = (event, newValue) => {
@@ -145,16 +170,16 @@ const BillPolling = () => {
   const renderBillCard = (bill) => {
     // Determine tag and color based on content
     const isEconomic =
-      bill.Title.includes("Finance") || bill.Title.includes("Housing");
+      bill?.title.includes("Finance") || bill?.title.includes("Housing");
     // Use the slightly muted TAG_ECONOMIC color defined above
     const tagColor = isEconomic ? "error" : "secondary";
     const tagLabel = isEconomic ? "Economic Policy" : "Social Policy";
-    const totalVotes = bill.Votes_For + bill.Votes_Against;
+    const totalVotes = bill.votesFor + bill.votesAgainst;
 
     // Determine dynamic options based on bill title for visual variety
-    const options = bill.Title.includes("Finance")
+    const options = bill.title.includes("Finance")
       ? ["Fully Support", "Support with amendments", "Reject in its entirety"]
-      : bill.Title.includes("Housing")
+      : bill.title.includes("Housing")
       ? [
           "Yes, it is a necessary step",
           "No, it should be a voluntary contribution",
@@ -229,7 +254,7 @@ const BillPolling = () => {
                 component="div"
                 sx={{ fontWeight: 600, color: COLORS.HEADER_TITLE, mb: 1.5 }}
               >
-                {bill.Title}: {bill.Summary.split(". ")[0]}?
+                {bill.title}: {bill.summary.split(". ")[0]}?
               </Typography>
 
               <Typography
@@ -238,7 +263,11 @@ const BillPolling = () => {
                 sx={{ display: "block", mb: 2 }}
               >
                 Proposed by:{" "}
-                {bill.Type === "B" ? "Parliament of Kenya" : "Amani360 User"}
+                {bill.type === "B"
+                  ? "Parliament of Kenya"
+                  : bill.createdByName
+                  ? bill.createdByName
+                  : "Amani360 User"}
               </Typography>
             </Box>
 
@@ -260,8 +289,8 @@ const BillPolling = () => {
     );
   }
 
-  const publicBills = bills.filter((b) => b.Type === "P");
-  const parliamentaryBills = bills.filter((b) => b.Type === "B");
+  const publicBills = bills.filter((b) => b.type === "P");
+  const parliamentaryBills = bills.filter((b) => b.type === "B");
   const currentBills = activeTab === 0 ? publicBills : parliamentaryBills;
 
   return (
@@ -296,6 +325,7 @@ const BillPolling = () => {
           <Button
             startIcon={<MdAddCircle />}
             variant="outlined"
+            onClick={() => setIsModalOpen(true)}
             // Ensure button uses the softer accent color
             sx={{
               py: 1.5,
@@ -349,6 +379,12 @@ const BillPolling = () => {
         </Box>
       </Card> */}
       {/* --- END OFFLINE ALERT CARD --- */}
+
+      {/* PROPOSE BILL COMPONENT */}
+      <ProposeBillModal
+        open={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+      />
 
       {/* --- Tabs --- */}
       <Box sx={{ borderBottom: 1, borderColor: "divider" }}>

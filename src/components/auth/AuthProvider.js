@@ -30,26 +30,10 @@ import { FIREBASE_CONFIG } from "../../firebaseConfig";
 import EmailAuthForm from "./EmailAuthForm";
 import PhoneAuthForm from "./PhoneAuthForm";
 import { syncUserDocument } from "../../firebase/firestore";
+import { db, auth, app } from "../../firebase/config";
 
 const AuthContext = createContext();
 export const useAuth = () => useContext(AuthContext);
-
-let app, auth, db;
-let isFirebaseInitialized = false;
-
-// --- Initialize Firebase ---
-if (FIREBASE_CONFIG && FIREBASE_CONFIG.apiKey) {
-  app = initializeApp(FIREBASE_CONFIG);
-  auth = getAuth(app);
-  db = getFirestore(app);
-  setPersistence(auth, browserLocalPersistence);
-  isFirebaseInitialized = true;
-} else {
-  console.error("❌ Firebase config missing or invalid!");
-}
-
-// --- Firestore Sync ---
-const syncUserDocument = await syncUserDocument(user, displayNameOverride);
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
