@@ -47,6 +47,10 @@ export const COLORS = {
   BACKGROUND_DARK: "#121212",
   TEXT_PRIMARY: "#FFFFFF",
   TEXT_SECONDARY: "#B0B0B0",
+  // ACCENT_YELLOW: "#FBC02D", // Softer, darker yellow accent (was #FFC107)
+  ACCENT_BLUE_DARK: "#192634",
+  TAG_ECONOMIC: "#D32F2F", // Slightly less bright red for tags (was #F44336)
+  HEADER_TITLE: "#E0E0E0", // Soft white for main text
 };
 
 export default darkTheme;

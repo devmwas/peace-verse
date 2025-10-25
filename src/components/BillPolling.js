@@ -1,8 +1,14 @@
 import React, { useState, useEffect } from "react";
 import { fetchBillsFromFirestore } from "../firebase/firestore";
+import DetailedStats from "./DetailedStats";
 import ProposeBillModal from "./ProposeBillModal";
 import { motion } from "framer-motion";
 import { listenToBills } from "../firebase/firestore";
+import { submitVote, listenToBillVotes } from "../firebase/firestore";
+import { onAuthStateChanged } from "firebase/auth";
+import { auth } from "../firebase/config";
+import { useAuth } from "./auth/AuthProvider";
+import { AnimatePresence } from "framer-motion";
 import {
   Box,
   Card,
@@ -16,14 +22,11 @@ import {
 } from "@mui/material";
 import { BsFillHouseDoorFill, BsFileTextFill } from "react-icons/bs";
 import { MdOutlineLightbulb, MdAddCircle } from "react-icons/md";
-
+import { saveAs } from "file-saver";
+import jsPDF from "jspdf";
+import "jspdf-autotable";
 // --- Configuration Constants (Updated for a calmer, less loud palette) ---
-const COLORS = {
-  ACCENT_YELLOW: "#FBC02D", // Softer, darker yellow accent (was #FFC107)
-  ACCENT_BLUE_DARK: "#192634",
-  TAG_ECONOMIC: "#D32F2F", // Slightly less bright red for tags (was #F44336)
-  HEADER_TITLE: "#E0E0E0", // Soft white for main text
-};
+import { COLORS } from "../theme";
 
 // --- Framer Motion Animation Variants ---
 const cardVariants = {
@@ -82,14 +85,60 @@ const renderOfflineHeaderLink = () => (
   </Box>
 );
 
+// small helper fo allowing export of votes in different formats
+const exportVotesToJSON = (billTitle, votes) => {
+  const blob = new Blob([JSON.stringify(votes, null, 2)], {
+    type: "application/json",
+  });
+  saveAs(blob, `${billTitle}_votes.json`);
+};
+
+const exportVotesToCSV = (billTitle, votes) => {
+  const header = ["#", "User Name", "Vote Option", "Is Anonymous", "Timestamp"];
+  const rows = votes.map((v, i) => [
+    i + 1,
+    v.userDisplayName,
+    v.voteOption,
+    v.isAnonymous ? "Yes" : "No",
+    v.timestamp ? new Date(v.timestamp.seconds * 1000).toLocaleString() : "-",
+  ]);
+  const csvContent = [header.join(","), ...rows.map((r) => r.join(","))].join(
+    "\n"
+  );
+  const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+  saveAs(blob, `${billTitle}_votes.csv`);
+};
+
+export const exportVotesToPDF = (filename, votes) => {
+  const doc = new jsPDF();
+  doc.setFontSize(14);
+  doc.text(`${filename} - Vote Summary`, 10, 10);
+
+  let y = 20;
+  votes.forEach((v, i) => {
+    doc.text(
+      `${i + 1}. ${v.isAnonymous ? "Anonymous User" : v.userDisplayName} — ${
+        v.voteOption
+      }`,
+      10,
+      y
+    );
+    y += 8;
+  });
+
+  doc.save(`${filename}.pdf`);
+};
+
 const BillPolling = () => {
   const [bills, setBills] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
-
+  const [billVotes, setBillVotes] = useState({}); // store votes per bill
+  const [selectedBillForStats, setSelectedBillForStats] = useState(null);
   // Start on Parliamentary Bills tab (index 1) to match the screenshot
   const [activeTab, setActiveTab] = useState(0);
-
+  // Getting our user from the auth provider
+  const { user } = useAuth();
   // useEffect(() => {
   //   const loadBills = async () => {
   //     try {
@@ -118,36 +167,81 @@ const BillPolling = () => {
     return () => unsubscribe();
   }, []);
 
+  // Tracking auth state change
+  useEffect(() => {
+    const unsubscribeAuth = onAuthStateChanged(auth, (currentUser) => {
+      // setUser(currentUser);
+      // Will add this logic later if necessary
+    });
+
+    return () => unsubscribeAuth();
+  }, []);
+
+  // Listen to votes for all bills dynamically
+  useEffect(() => {
+    const unsubscribes = bills.map((bill) =>
+      listenToBillVotes(bill.id, (votes) => {
+        setBillVotes((prev) => ({ ...prev, [bill.id]: votes }));
+      })
+    );
+
+    return () => unsubscribes.forEach((u) => u && u());
+  }, [bills]);
+
   const handleTabChange = (event, newValue) => {
     setActiveTab(newValue);
   };
 
-  const handleVote = (billId, voteOption) => {
-    // Placeholder for authentication and state update
-    console.log(`Selected option: ${voteOption} on Bill ID ${billId}.`);
+  // Allow users to vote on a bill
+  const handleVote = async (billId, voteOption) => {
+    try {
+      if (!user) {
+        alert("Please sign in (or continue anonymously) to vote.");
+        return;
+      }
 
-    setBills((prevBills) =>
-      prevBills.map((bill) =>
-        bill.id === billId ? { ...bill, voteChoice: voteOption } : bill
-      )
-    );
+      await submitVote(user, billId, voteOption);
+
+      // Update UI selection locally
+      setBills((prev) =>
+        prev.map((b) =>
+          b.id === billId ? { ...b, voteChoice: voteOption } : b
+        )
+      );
+    } catch (error) {
+      alert(error.message);
+    }
   };
 
+  // This will now show live stats on the vote bars for quick perusal
   const renderOptionButton = (billId, optionText) => {
-    const isSelected =
-      bills.find((b) => b.id === billId)?.voteChoice === optionText;
+    const currentBill = bills.find((b) => b.id === billId);
+    const votes = billVotes[billId] || [];
+    const totalVotes = votes.length;
+    const grouped = votes.reduce((acc, v) => {
+      acc[v.voteOption] = (acc[v.voteOption] || 0) + 1;
+      return acc;
+    }, {});
+    const count = grouped[optionText] || 0;
+    const pct = totalVotes > 0 ? ((count / totalVotes) * 100).toFixed(1) : 0;
+
+    const userVotedOption = votes.find(
+      (v) => v.userId === user?.uid
+    )?.voteOption;
+    const isSelected = userVotedOption === optionText;
 
     return (
       <Button
         key={optionText}
         variant={isSelected ? "contained" : "outlined"}
         color={isSelected ? "primary" : "inherit"}
+        onClick={() => handleVote(billId, optionText)}
         sx={{
           width: "100%",
           mb: 1,
-          justifyContent: "flex-start",
+          justifyContent: "space-between",
           textTransform: "none",
-          // Use the softer accent color
+          fontWeight: 500,
           borderColor: isSelected
             ? COLORS.ACCENT_YELLOW
             : "rgba(255, 255, 255, 0.2)",
@@ -159,10 +253,57 @@ const BillPolling = () => {
               ? COLORS.ACCENT_YELLOW
               : "rgba(255, 255, 255, 0.08)",
           },
+          position: "relative",
+          overflow: "hidden",
         }}
-        onClick={() => handleVote(billId, optionText)}
       >
-        {optionText}
+        {/* Percentage bar behind text */}
+        <Box
+          sx={{
+            position: "absolute",
+            top: 0,
+            left: 0,
+            width: `${pct}%`,
+            height: "100%",
+            backgroundColor: isSelected
+              ? `${COLORS.ACCENT_YELLOW}99`
+              : "rgba(255,255,255,0.08)",
+            zIndex: 0,
+            transition: "width 0.4s ease",
+          }}
+        />
+        <Box
+          sx={{
+            position: "relative",
+            display: "flex",
+            justifyContent: "space-between",
+            width: "100%",
+            zIndex: 1,
+          }}
+        >
+          <Typography
+            variant="body2"
+            sx={{
+              flexGrow: 1,
+              textAlign: "left",
+            }}
+          >
+            {optionText}
+          </Typography>
+
+          {totalVotes > 0 && (
+            <Typography
+              variant="body2"
+              sx={{
+                fontWeight: "bold",
+                ml: 1,
+                color: isSelected ? "black" : COLORS.ACCENT_YELLOW,
+              }}
+            >
+              {pct}%
+            </Typography>
+          )}
+        </Box>
       </Button>
     );
   };
@@ -187,19 +328,24 @@ const BillPolling = () => {
       : ["Approve Bill", "Reject Bill", "Abstain"];
 
     return (
-      <motion.div variants={cardVariants} className="col-span-1">
+      <motion.div
+        variants={cardVariants}
+        className="col-span-1 flex"
+        style={{ height: "100%" }}
+      >
         <Card
           elevation={8}
           sx={{
-            bgcolor: "background.paper", // Dark card color
-            height: "100%",
+            bgcolor: "background.paper",
+            flex: 1, // ✅ fills height of parent
             display: "flex",
             flexDirection: "column",
+            justifyContent: "space-between", // keeps vote section aligned
             borderRadius: "10px",
             border: `1px solid rgba(255, 255, 255, 0.1)`,
             transition: "box-shadow 0.3s",
+            height: "100%", // ✅ ensures uniform height
             "&:hover": {
-              // Use the softer yellow for the glow
               boxShadow: `0 0 15px 2px ${COLORS.ACCENT_YELLOW}33`,
             },
           }}
@@ -275,6 +421,64 @@ const BillPolling = () => {
             <Box sx={{ flexShrink: 0 }}>
               {options.map((option) => renderOptionButton(bill.id, option))}
             </Box>
+
+            {/* --- Detailed Voter List + Export --- */}
+            {billVotes[bill.id] && billVotes[bill.id].length > 0 && (
+              <Box
+                sx={{
+                  mt: 2,
+                  borderTop: "1px solid rgba(255,255,255,0.1)",
+                  pt: 1,
+                }}
+              >
+                <Typography
+                  variant="subtitle2"
+                  sx={{ color: COLORS.HEADER_TITLE }}
+                >
+                  Export Options
+                </Typography>
+
+                {/* Votes Data Export Options */}
+                <Box sx={{ mt: 1, display: "flex", gap: 1 }}>
+                  <Button
+                    size="small"
+                    variant="outlined"
+                    onClick={() =>
+                      exportVotesToCSV(
+                        bill.title.replace(/\s+/g, "_"),
+                        billVotes[bill.id]
+                      )
+                    }
+                  >
+                    Export CSV
+                  </Button>
+                  <Button
+                    size="small"
+                    variant="outlined"
+                    onClick={() =>
+                      exportVotesToPDF(
+                        bill.title.replace(/\s+/g, "_"),
+                        billVotes[bill.id]
+                      )
+                    }
+                  >
+                    Export PDF
+                  </Button>
+                  <Button
+                    size="small"
+                    variant="outlined"
+                    onClick={() =>
+                      exportVotesToJSON(
+                        bill.title.replace(/\s+/g, "_"),
+                        billVotes[bill.id]
+                      )
+                    }
+                  >
+                    Export JSON
+                  </Button>
+                </Box>
+              </Box>
+            )}
           </CardContent>
         </Card>
       </motion.div>
@@ -418,7 +622,30 @@ const BillPolling = () => {
         <TabPanel value={activeTab} index={0}>
           {/* --- Tailwind Grid for Responsive Breakpoints --- */}
           <div className="grid gap-6 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
-            {publicBills.map(renderBillCard)}
+            {/* {publicBills.map(renderBillCard)} */}
+            {selectedBillForStats ? (
+              <DetailedStats
+                bill={selectedBillForStats}
+                onBack={() => setSelectedBillForStats(null)}
+              />
+            ) : (
+              publicBills.map((bill) => (
+                <Box key={bill.id} sx={{ mb: 3 }}>
+                  {renderBillCard(bill)}
+                  <Button
+                    variant="text"
+                    sx={{
+                      mt: 1,
+                      color: COLORS.ACCENT_YELLOW,
+                      textTransform: "none",
+                    }}
+                    onClick={() => setSelectedBillForStats(bill)}
+                  >
+                    Show Detailed Stats →
+                  </Button>
+                </Box>
+              ))
+            )}
           </div>
         </TabPanel>
 

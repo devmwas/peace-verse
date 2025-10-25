@@ -3,6 +3,7 @@ import {
   collection,
   doc,
   addDoc,
+  getDoc,
   getDocs,
   onSnapshot,
   query,
@@ -95,4 +96,30 @@ export const listenToBills = (callback) => {
   });
 
   return unsubscribe;
+};
+
+// --- Record or update a user's vote ---
+export const submitVote = async (user, billId, voteOption) => {
+  if (!user) {
+    throw new Error("You must be signed in (even anonymously) to vote.");
+  }
+
+  const voteRef = doc(db, "bills", billId, "votes", user.uid);
+
+  await setDoc(voteRef, {
+    userId: user.uid,
+    voteOption,
+    userDisplayName: user.displayName || "Anonymous User",
+    isAnonymous: user.isAnonymous,
+    timestamp: serverTimestamp(),
+  });
+};
+
+// --- Listen to votes on a bill (real-time stats) ---
+export const listenToBillVotes = (billId, callback) => {
+  const q = collection(db, "bills", billId, "votes");
+  return onSnapshot(q, (snapshot) => {
+    const votes = snapshot.docs.map((doc) => doc.data());
+    callback(votes);
+  });
 };
