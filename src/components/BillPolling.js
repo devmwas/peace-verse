@@ -19,6 +19,7 @@ import {
   CircularProgress,
   Tabs,
   Tab,
+  Tooltip,
 } from "@mui/material";
 import { BsFillHouseDoorFill, BsFileTextFill } from "react-icons/bs";
 import { MdOutlineLightbulb, MdAddCircle } from "react-icons/md";
@@ -27,6 +28,7 @@ import jsPDF from "jspdf";
 import "jspdf-autotable";
 // --- Configuration Constants (Updated for a calmer, less loud palette) ---
 import { COLORS } from "../theme";
+import { FileText, FileSpreadsheet, FileCode, BarChart3 } from "lucide-react";
 
 // --- Framer Motion Animation Variants ---
 const cardVariants = {
@@ -134,6 +136,7 @@ const BillPolling = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [billVotes, setBillVotes] = useState({}); // store votes per bill
+  const [votes, setVotes] = useState([]);
   const [selectedBillForStats, setSelectedBillForStats] = useState(null);
   // Start on Parliamentary Bills tab (index 1) to match the screenshot
   const [activeTab, setActiveTab] = useState(0);
@@ -187,6 +190,15 @@ const BillPolling = () => {
 
     return () => unsubscribes.forEach((u) => u && u());
   }, [bills]);
+
+  // Now the export buttons inside your bill card will have access to a proper votes array.
+  useEffect(() => {
+    if (!selectedBillForStats) return;
+    const unsub = listenToBillVotes(selectedBillForStats.id, (liveVotes) => {
+      setVotes(liveVotes);
+    });
+    return () => unsub();
+  }, [selectedBillForStats]);
 
   const handleTabChange = (event, newValue) => {
     setActiveTab(newValue);
@@ -308,6 +320,7 @@ const BillPolling = () => {
     );
   };
 
+  // Billpolling card
   const renderBillCard = (bill) => {
     // Determine tag and color based on content
     const isEconomic =
@@ -422,61 +435,79 @@ const BillPolling = () => {
               {options.map((option) => renderOptionButton(bill.id, option))}
             </Box>
 
-            {/* --- Detailed Voter List + Export --- */}
+            {/* 🔹 View Detailed Stats Button */}
             {billVotes[bill.id] && billVotes[bill.id].length > 0 && (
-              <Box
+              <Button
+                variant="outlined"
+                fullWidth
+                onClick={() => setSelectedBillForStats(bill)} // existing handler
                 sx={{
-                  mt: 2,
-                  borderTop: "1px solid rgba(255,255,255,0.1)",
-                  pt: 1,
+                  color: COLORS.ACCENT_YELLOW,
+                  borderColor: COLORS.ACCENT_YELLOW,
+                  textTransform: "none",
+                  "&:hover": {
+                    borderColor: COLORS.ACCENT_YELLOW,
+                    backgroundColor: `${COLORS.ACCENT_YELLOW}22`,
+                  },
                 }}
               >
-                <Typography
-                  variant="subtitle2"
-                  sx={{ color: COLORS.HEADER_TITLE }}
-                >
-                  Export Options
-                </Typography>
+                <BarChart3 size={18} style={{ marginRight: 8 }} />
+                View Detailed Stats
+              </Button>
+            )}
 
-                {/* Votes Data Export Options */}
-                <Box sx={{ mt: 1, display: "flex", gap: 1 }}>
-                  <Button
-                    size="small"
-                    variant="outlined"
-                    onClick={() =>
-                      exportVotesToCSV(
-                        bill.title.replace(/\s+/g, "_"),
-                        billVotes[bill.id]
-                      )
-                    }
-                  >
-                    Export CSV
-                  </Button>
-                  <Button
-                    size="small"
-                    variant="outlined"
-                    onClick={() =>
-                      exportVotesToPDF(
-                        bill.title.replace(/\s+/g, "_"),
-                        billVotes[bill.id]
-                      )
-                    }
-                  >
-                    Export PDF
-                  </Button>
-                  <Button
-                    size="small"
-                    variant="outlined"
-                    onClick={() =>
-                      exportVotesToJSON(
-                        bill.title.replace(/\s+/g, "_"),
-                        billVotes[bill.id]
-                      )
-                    }
-                  >
-                    Export JSON
-                  </Button>
-                </Box>
+            {/* --- Export Options --- */}
+            {billVotes[bill.id] && billVotes[bill.id].length > 0 && (
+              /* 🔹 Compact Export Icons */
+              <Box
+                sx={{
+                  display: "flex",
+                  gap: 1.5,
+                  mt: 2,
+                  justifyContent: "center",
+                }}
+              >
+                <Button
+                  size="small"
+                  onClick={() => exportVotesToCSV(bill.title, votes)}
+                  sx={{
+                    minWidth: 0,
+                    color: COLORS.TEXT_PRIMARY,
+                  }}
+                >
+                  <FileSpreadsheet size={14} />
+                  <Tooltip title="Export votes data as CSV file?">
+                    <span className="pl-1 text-[12px]">CSV</span>
+                  </Tooltip>
+                </Button>
+
+                <Button
+                  size="small"
+                  onClick={() => exportVotesToPDF(bill.title, votes)}
+                  sx={{
+                    minWidth: 0,
+                    color: COLORS.TEXT_PRIMARY,
+                  }}
+                >
+                  <FileText size={14} />{" "}
+                  <Tooltip title="Export votes data as PDF file?">
+                    <span className="pl-1 text-[12px]">PDF</span>
+                  </Tooltip>
+                </Button>
+
+                <Button
+                  size="small"
+                  onClick={() => exportVotesToJSON(bill.title, votes)}
+                  sx={{
+                    minWidth: 0,
+                    color: COLORS.TEXT_PRIMARY,
+                  }}
+                >
+                  <FileCode size={14} />{" "}
+                  <Tooltip title="Export votes data as JSON file?">
+                    <span className="pl-1 text-[12px]">JSON</span>
+                  </Tooltip>
+                </Button>
               </Box>
             )}
           </CardContent>
@@ -632,17 +663,6 @@ const BillPolling = () => {
               publicBills.map((bill) => (
                 <Box key={bill.id} sx={{ mb: 3 }}>
                   {renderBillCard(bill)}
-                  <Button
-                    variant="text"
-                    sx={{
-                      mt: 1,
-                      color: COLORS.ACCENT_YELLOW,
-                      textTransform: "none",
-                    }}
-                    onClick={() => setSelectedBillForStats(bill)}
-                  >
-                    Show Detailed Stats →
-                  </Button>
                 </Box>
               ))
             )}

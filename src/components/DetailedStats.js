@@ -29,6 +29,7 @@ import {
 } from "../utils/exportHelpers";
 import { listenToBillVotes } from "../firebase/firestore";
 import { motion, AnimatePresence } from "framer-motion";
+import { FileText, FileSpreadsheet, FileCode, Download } from "lucide-react";
 
 const chartColors = ["#FFC107", "#4CAF50", "#03A9F4", "#E91E63", "#9C27B0"];
 
@@ -144,7 +145,7 @@ const DetailedStats = ({ bill, onBack }) => {
         {bill.title}
       </Typography>
       <Typography variant="body2" sx={{ mb: 1 }}>
-        Proposed by: <strong>{bill.proposer || "Unknown"}</strong>
+        Proposed by: <strong>{bill.createdByName || "Unknown"}</strong>
       </Typography>
       <Typography variant="body2" sx={{ mb: 2 }}>
         {bill.summary || "No summary available."}
@@ -199,13 +200,16 @@ const DetailedStats = ({ bill, onBack }) => {
     >
       <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap", mb: 2 }}>
         <Button onClick={() => exportVotesToCSV(bill.title, votes)}>
-          Export CSV
+          <Download size={14} />
+          <span className="ml-1">CSV</span>
         </Button>
         <Button onClick={() => exportVotesToPDF(bill.title, votes)}>
-          Export PDF
+          <Download size={14} />
+          <span className="ml-1">PDF</span>
         </Button>
         <Button onClick={() => exportVotesToJSON(bill.title, votes)}>
-          Export JSON
+          <Download size={14} />
+          <span className="ml-1">JSON</span>
         </Button>
       </Box>
 
