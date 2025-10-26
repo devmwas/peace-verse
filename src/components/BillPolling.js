@@ -650,10 +650,10 @@ const BillPolling = () => {
         initial="hidden"
         animate="visible"
       >
+        {/* Public proposed bills */}
         <TabPanel value={activeTab} index={0}>
           {/* --- Tailwind Grid for Responsive Breakpoints --- */}
           <div className="grid gap-6 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
-            {/* {publicBills.map(renderBillCard)} */}
             {selectedBillForStats ? (
               <DetailedStats
                 bill={selectedBillForStats}
@@ -669,10 +669,22 @@ const BillPolling = () => {
           </div>
         </TabPanel>
 
+        {/* Parliamentary bills */}
         <TabPanel value={activeTab} index={1}>
           {/* --- Tailwind Grid for Responsive Breakpoints --- */}
           <div className="grid gap-6 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
-            {parliamentaryBills.map(renderBillCard)}
+            {selectedBillForStats ? (
+              <DetailedStats
+                bill={selectedBillForStats}
+                onBack={() => setSelectedBillForStats(null)}
+              />
+            ) : (
+              parliamentaryBills.map((bill) => (
+                <Box key={bill.id} sx={{ mb: 3 }}>
+                  {renderBillCard(bill)}
+                </Box>
+              ))
+            )}{" "}
           </div>
         </TabPanel>
       </motion.div>

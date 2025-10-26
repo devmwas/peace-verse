@@ -29,7 +29,13 @@ import {
 } from "../utils/exportHelpers";
 import { listenToBillVotes } from "../firebase/firestore";
 import { motion, AnimatePresence } from "framer-motion";
-import { FileText, FileSpreadsheet, FileCode, Download } from "lucide-react";
+import {
+  FileText,
+  FileSpreadsheet,
+  FileCode,
+  Download,
+  ArrowLeft,
+} from "lucide-react";
 
 const chartColors = ["#FFC107", "#4CAF50", "#03A9F4", "#E91E63", "#9C27B0"];
 
@@ -141,11 +147,23 @@ const DetailedStats = ({ bill, onBack }) => {
         height: "fit-content",
       }}
     >
+      {/* Back to bills and polling */}
+      <Button
+        variant="text"
+        sx={{ mb: 2, display: "flex", justifyContent: "flex-start" }}
+        onClick={handleBack}
+        color={COLORS.TEXT_PRIMARY}
+        fullWidth
+        startIcon={<ArrowLeft size={14} />}
+      >
+        Back to Bills & Polling
+      </Button>
+
       <Typography variant="h6" sx={{ color: COLORS.ACCENT_YELLOW, mb: 1 }}>
         {bill.title}
       </Typography>
       <Typography variant="body2" sx={{ mb: 1 }}>
-        Proposed by: <strong>{bill.createdByName || "Unknown"}</strong>
+        Proposed by: <strong>{bill.createdByName || "Parliament"}</strong>
       </Typography>
       <Typography variant="body2" sx={{ mb: 2 }}>
         {bill.summary || "No summary available."}
@@ -153,9 +171,6 @@ const DetailedStats = ({ bill, onBack }) => {
       <Typography variant="caption" sx={{ color: "#ccc" }}>
         {votes.length} total votes (live)
       </Typography>
-      <Button variant="outlined" sx={{ mt: 2 }} onClick={handleBack} fullWidth>
-        Back to Bills & Polling
-      </Button>
     </Card>
   );
 
@@ -168,6 +183,20 @@ const DetailedStats = ({ bill, onBack }) => {
         color: "#fff",
       }}
     >
+      {/* Back to bills and polling */}
+      <div className="block lg:hidden">
+        <Button
+          variant="text"
+          sx={{ mb: 2, display: "flex", justifyContent: "flex-start" }}
+          onClick={handleBack}
+          color={COLORS.TEXT_PRIMARY}
+          fullWidth
+          startIcon={<ArrowLeft size={14} />}
+        >
+          Back to Bills & Polling
+        </Button>
+      </div>
+
       <Typography variant="h6" sx={{ color: COLORS.ACCENT_YELLOW, mb: 2 }}>
         Voting Stats
       </Typography>
@@ -198,6 +227,20 @@ const DetailedStats = ({ bill, onBack }) => {
         flexDirection: "column",
       }}
     >
+      {/* Back to bills and polling */}
+      <div className="block lg:hidden">
+        <Button
+          variant="text"
+          sx={{ mb: 2, display: "flex", justifyContent: "flex-start" }}
+          onClick={handleBack}
+          color={COLORS.TEXT_PRIMARY}
+          fullWidth
+          startIcon={<ArrowLeft size={14} />}
+        >
+          Back to Bills & Polling
+        </Button>
+      </div>
+
       <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap", mb: 2 }}>
         <Button onClick={() => exportVotesToCSV(bill.title, votes)}>
           <Download size={14} />
@@ -232,7 +275,6 @@ const DetailedStats = ({ bill, onBack }) => {
       >
         <span>#</span>
         <span>Display Name</span>
-        <span>Email</span>
         <span style={{ textAlign: "right" }}>Vote</span>
       </Box>
 
@@ -265,9 +307,7 @@ const DetailedStats = ({ bill, onBack }) => {
               <Typography variant="body2">
                 {v.userDisplayName || "Anonymous"}
               </Typography>
-              <Typography variant="body2" sx={{ opacity: 0.8 }}>
-                {v.userEmail || "N/A"}
-              </Typography>
+
               <Typography
                 variant="body2"
                 sx={{ color: COLORS.ACCENT_YELLOW, textAlign: "right" }}
